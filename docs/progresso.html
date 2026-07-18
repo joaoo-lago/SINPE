@@ -1,0 +1,456 @@
+<title>SINPE 2.0 — Painel de Progresso</title>
+<style>
+  :root {
+    --bg: #eef1f4; --surface: #ffffff; --surface-2: #f6f8fa;
+    --ink: #131922; --muted: #59636f; --line: #dce1e7;
+    --accent: #c0334e; --accent-ink: #8e2038; --accent-soft: #f6e2e6;
+    --good: #1f9d57; --warn: #c67a12; --pending: #8a94a0;
+    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --radius: 12px; --maxw: 1120px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1319; --surface: #161c24; --surface-2: #1d2630;
+      --ink: #eaeef3; --muted: #93a0ad; --line: #2a343f;
+      --accent: #e5556e; --accent-ink: #f09baa; --accent-soft: #3a2028;
+      --good: #34c77b; --warn: #e0a64b; --pending: #6b7681;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #eef1f4; --surface: #ffffff; --surface-2: #f6f8fa;
+    --ink: #131922; --muted: #59636f; --line: #dce1e7;
+    --accent: #c0334e; --accent-ink: #8e2038; --accent-soft: #f6e2e6;
+    --good: #1f9d57; --warn: #c67a12; --pending: #8a94a0;
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1319; --surface: #161c24; --surface-2: #1d2630;
+    --ink: #eaeef3; --muted: #93a0ad; --line: #2a343f;
+    --accent: #e5556e; --accent-ink: #f09baa; --accent-soft: #3a2028;
+    --good: #34c77b; --warn: #e0a64b; --pending: #6b7681;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--font-sans); line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .eyebrow {
+    font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600;
+  }
+  h2 { font-size: 22px; letter-spacing: -.01em; margin: 0 0 4px; text-wrap: balance; }
+  h3 { font-size: 15px; margin: 0; letter-spacing: -.005em; }
+  section { padding: 40px 0; border-top: 1px solid var(--line); }
+  .sec-head { margin-bottom: 24px; }
+  .sec-head p { color: var(--muted); margin: 6px 0 0; max-width: 62ch; font-size: 14.5px; }
+
+  /* ---------- Header ---------- */
+  header {
+    background:
+      radial-gradient(120% 140% at 85% -20%, var(--accent-soft) 0%, transparent 55%),
+      var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  .head-inner { padding: 34px 0 30px; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .glyph {
+    width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
+    background: var(--accent); color: #fff; font-weight: 800; font-size: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.14);
+  }
+  .brand b { font-size: 16px; letter-spacing: -.01em; }
+  .brand span { color: var(--muted); font-size: 13px; }
+  h1 {
+    font-size: clamp(30px, 5vw, 44px); line-height: 1.05; letter-spacing: -.025em;
+    margin: 22px 0 8px; text-wrap: balance; font-weight: 750;
+  }
+  .lede { color: var(--muted); max-width: 64ch; font-size: 15.5px; margin: 0; }
+  .ecg { display: block; width: 100%; height: 46px; margin: 18px 0 6px; color: var(--accent); }
+  .ecg path { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  @media (prefers-reduced-motion: no-preference) {
+    .ecg path {
+      stroke-dasharray: 1200; stroke-dashoffset: 1200;
+      animation: draw 2.6s cubic-bezier(.6,.05,.2,1) .2s forwards;
+    }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+  }
+
+  /* ---------- Progress bar ---------- */
+  .overall { margin-top: 26px; }
+  .overall-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .overall-top b { font-size: 14px; }
+  .overall-top .pct { font-size: 22px; font-weight: 750; color: var(--accent); }
+  .track { height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; border: 1px solid var(--line); }
+  .track > i { display: block; height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-ink)); }
+  @media (prefers-reduced-motion: no-preference) {
+    .track > i { animation: grow 1.4s cubic-bezier(.5,0,.1,1) .3s both; }
+    @keyframes grow { from { width: 0 !important; } }
+  }
+
+  /* ---------- Stat tiles ---------- */
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 26px; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; }
+  .tile .k { font-size: 28px; font-weight: 750; letter-spacing: -.02em; line-height: 1; }
+  .tile .k small { font-size: 15px; font-weight: 600; color: var(--muted); }
+  .tile .l { color: var(--muted); font-size: 12.5px; margin-top: 8px; }
+  .tile.accent .k { color: var(--accent); }
+
+  /* ---------- Roadmap ---------- */
+  .road { display: grid; gap: 0; }
+  .step {
+    display: grid; grid-template-columns: 40px 1fr auto; gap: 16px; align-items: start;
+    padding: 16px 0; border-bottom: 1px dashed var(--line); position: relative;
+  }
+  .step:last-child { border-bottom: 0; }
+  .node {
+    width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+    font-size: 13px; font-weight: 700; font-family: var(--font-mono);
+    border: 2px solid var(--line); color: var(--muted); background: var(--surface);
+  }
+  .step.done .node { background: var(--good); border-color: var(--good); color: #fff; }
+  .step.partial .node { background: var(--warn); border-color: var(--warn); color: #fff; }
+  .step.next .node { border-color: var(--accent); color: var(--accent); }
+  .step .body h3 { margin-bottom: 3px; }
+  .step .body p { margin: 0; color: var(--muted); font-size: 13.5px; }
+  .pill {
+    font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    padding: 5px 10px; border-radius: 999px; white-space: nowrap; align-self: center;
+  }
+  .pill.done { background: color-mix(in srgb, var(--good) 15%, transparent); color: var(--good); }
+  .pill.partial { background: color-mix(in srgb, var(--warn) 16%, transparent); color: var(--warn); }
+  .pill.next { background: var(--accent-soft); color: var(--accent-ink); }
+  .pill.pending { background: var(--surface-2); color: var(--pending); border: 1px solid var(--line); }
+
+  /* ---------- Modules table ---------- */
+  .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 520px; }
+  th, td { text-align: left; padding: 12px 16px; font-size: 13.5px; border-bottom: 1px solid var(--line); }
+  th { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  tr:last-child td { border-bottom: 0; }
+  td.mod { font-family: var(--font-mono); font-size: 12.5px; }
+  td.layer { color: var(--muted); }
+  .dot { display: inline-flex; align-items: center; gap: 7px; font-weight: 600; font-size: 12.5px; }
+  .dot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--pending); }
+  .dot.ok { color: var(--good); } .dot.ok::before { background: var(--good); }
+  .dot.wip { color: var(--warn); } .dot.wip::before { background: var(--warn); }
+  .dot.plan::before { background: var(--pending); }
+
+  /* ---------- Architecture ---------- */
+  .arch { display: grid; gap: 12px; }
+  .layer-row { display: grid; grid-template-columns: 150px 1fr; gap: 14px; align-items: stretch; }
+  .layer-tag {
+    display: flex; align-items: center; font-size: 12px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted); padding: 0 4px;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 12px; }
+  .chip { font-size: 12.5px; font-weight: 600; padding: 6px 11px; border-radius: 8px;
+    background: var(--surface-2); border: 1px solid var(--line); }
+  .chip.hl { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 30%, var(--line)); color: var(--accent-ink); }
+
+  /* ---------- Charts preview ---------- */
+  .charts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+  .card .cap { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+  .card .cap .n { font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
+  .bars { display: grid; gap: 11px; }
+  .bar-row { display: grid; grid-template-columns: 120px 1fr 52px; gap: 10px; align-items: center; font-size: 13px; }
+  .bar-row .lab { color: var(--ink); }
+  .bar-track { height: 20px; background: var(--surface-2); border-radius: 6px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--accent); border-radius: 6px; opacity: .9; }
+  .bar-fill.zero { background: var(--line); }
+  .bar-row .val { text-align: right; color: var(--muted); font-family: var(--font-mono); font-size: 12px; }
+  .donut-wrap { display: flex; align-items: center; gap: 22px; }
+  .donut { width: 128px; height: 128px; border-radius: 50%; flex: none; position: relative;
+    -webkit-mask: radial-gradient(circle 38px at center, transparent 98%, #000 100%);
+    mask: radial-gradient(circle 38px at center, transparent 98%, #000 100%); }
+  .legend { display: grid; gap: 9px; font-size: 13px; }
+  .legend div { display: flex; align-items: center; gap: 9px; }
+  .legend i { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+  .legend b { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .legend small { color: var(--muted); margin-left: auto; font-family: var(--font-mono); }
+
+  .note { font-size: 12.5px; color: var(--muted); margin-top: 18px; }
+  .note code { font-family: var(--font-mono); background: var(--surface-2); padding: 1px 6px; border-radius: 5px; font-size: 12px; }
+
+  footer { padding: 34px 0 48px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+  footer a { color: var(--accent-ink); text-decoration: none; font-weight: 600; }
+  footer a:hover { text-decoration: underline; }
+  a:focus-visible, .step:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+  @media (max-width: 760px) {
+    .tiles { grid-template-columns: repeat(2, 1fr); }
+    .charts { grid-template-columns: 1fr; }
+    .layer-row { grid-template-columns: 1fr; gap: 6px; }
+    .bar-row { grid-template-columns: 96px 1fr 46px; }
+    .step { grid-template-columns: 34px 1fr; }
+    .step .pill { grid-column: 2; justify-self: start; margin-top: 6px; }
+  }
+</style>
+
+<header>
+  <div class="wrap head-inner">
+    <div class="brand">
+      <div class="glyph">S</div>
+      <div>
+        <b>SINPE 2.0</b><br>
+        <span>Sistema Integrado de Protocolos Eletrônicos</span>
+      </div>
+    </div>
+
+    <svg class="ecg" viewBox="0 0 900 46" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0,23 L360,23 L378,23 L390,8 L404,40 L418,4 L432,32 L446,23 L520,23 L536,23 L548,15 L560,30 L572,23 L900,23"/>
+    </svg>
+
+    <h1>Painel de progresso do sistema</h1>
+    <p class="lede">Acompanhamento da reformulação do SINPE — de plataforma desktop de coleta manual
+      para plataforma web de pesquisa clínica com motor de análise estatística e coleta automatizada por IA de voz.</p>
+
+    <div class="overall">
+      <div class="overall-top">
+        <b>Progresso geral do MVP</b>
+        <span class="pct mono">18%</span>
+      </div>
+      <div class="track"><i style="width:18%"></i></div>
+    </div>
+
+    <div class="tiles">
+      <div class="tile accent">
+        <div class="k mono">1<small>/7</small></div>
+        <div class="l">Sprints concluídos (Fundação)</div>
+      </div>
+      <div class="tile">
+        <div class="k mono">9</div>
+        <div class="l">Módulos de backend implementados</div>
+      </div>
+      <div class="tile">
+        <div class="k mono">4<small>/4</small></div>
+        <div class="l">Testes do motor estatístico passando</div>
+      </div>
+      <div class="tile">
+        <div class="k mono">30</div>
+        <div class="l">Arquivos versionados no repositório</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section>
+    <div class="sec-head">
+      <div class="eyebrow">Roadmap</div>
+      <h2>Plano de execução por sprint</h2>
+      <p>A ordem entrega valor cedo: primeiro o núcleo de protocolos e coleta manual (paridade com o SINPE original),
+        depois a análise estatística, por fim a coleta por IA — o diferencial do projeto PIBIC.</p>
+    </div>
+
+    <div class="road">
+      <div class="step done">
+        <div class="node">✓</div>
+        <div class="body">
+          <h3>Sprint 0 — Fundação (infraestrutura)</h3>
+          <p>FastAPI + SQLAlchemy + Docker (Postgres/Redis/MinIO), modelos de domínio e configuração base.</p>
+        </div>
+        <span class="pill done">Concluído</span>
+      </div>
+
+      <div class="step partial">
+        <div class="node">◐</div>
+        <div class="body">
+          <h3>Motor estatístico (núcleo do Sprint 4)</h3>
+          <p>Seleção automática de teste (qui-quadrado, t-Student, ANOVA, correlação) já implementada e testada no backend.
+            Falta ligar ao construtor de queries visual no front-end.</p>
+        </div>
+        <span class="pill partial">Núcleo pronto</span>
+      </div>
+
+      <div class="step next">
+        <div class="node">1</div>
+        <div class="body">
+          <h3>Sprint 1 — Protocolo Mestre (a árvore)</h3>
+          <p>API da árvore hierárquica (adicionar irmão / filho, tipos, seleção única/múltipla) e editor drag-and-drop.</p>
+        </div>
+        <span class="pill next">Próximo</span>
+      </div>
+
+      <div class="step">
+        <div class="node">2</div>
+        <div class="body">
+          <h3>Sprint 2 — Protocolo Específico + Pacientes</h3>
+          <p>Seleção de itens do mestre para compor específicos (IAM, HAS, IC…) e cadastro de pacientes com cifragem.</p>
+        </div>
+        <span class="pill pending">A fazer</span>
+      </div>
+
+      <div class="step">
+        <div class="node">3</div>
+        <div class="body">
+          <h3>Sprint 3 — Coleta manual</h3>
+          <p>Coletas em modelo EAV e tela de coleta (paridade funcional com o SINPE desktop).</p>
+        </div>
+        <span class="pill pending">A fazer</span>
+      </div>
+
+      <div class="step">
+        <div class="node">4</div>
+        <div class="body">
+          <h3>Sprint 4 — Estatística + gráficos (front)</h3>
+          <p>Camada OLAP (DuckDB), construtor visual de queries e dashboards de gráficos ligados ao motor.</p>
+        </div>
+        <span class="pill pending">A fazer</span>
+      </div>
+
+      <div class="step">
+        <div class="node">5</div>
+        <div class="body">
+          <h3>Sprint 5 — Coleta por IA de voz</h3>
+          <p>Transcrição em tempo real + LLM estruturador preenchendo o protocolo, com revisão humana obrigatória.</p>
+        </div>
+        <span class="pill pending">A fazer</span>
+      </div>
+
+      <div class="step">
+        <div class="node">6</div>
+        <div class="body">
+          <h3>Sprint 6 — Estudo comparativo (PIBIC) + hardening</h3>
+          <p>Métricas IA × manual (tempo, acurácia), exportação de dados, auditoria e revisão LGPD/CEP.</p>
+        </div>
+        <span class="pill pending">A fazer</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="eyebrow">Implementação</div>
+      <h2>Status dos módulos de backend</h2>
+      <p>O que já vive no repositório <span class="mono">joaoo-lago/SINPE</span> hoje.</p>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Módulo</th><th>Camada</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr><td class="mod">stats/engine.py</td><td class="layer">Motor estatístico</td><td><span class="dot ok">Implementado · testado</span></td></tr>
+          <tr><td class="mod">models/protocol.py</td><td class="layer">Domínio — árvore Mestre/Específico</td><td><span class="dot ok">Implementado</span></td></tr>
+          <tr><td class="mod">models/collection.py</td><td class="layer">Domínio — coletas (EAV)</td><td><span class="dot ok">Implementado</span></td></tr>
+          <tr><td class="mod">models/patient.py</td><td class="layer">Domínio — pacientes</td><td><span class="dot ok">Implementado</span></td></tr>
+          <tr><td class="mod">services/query_builder.py</td><td class="layer">Motor de busca (EAV → largo)</td><td><span class="dot ok">Implementado</span></td></tr>
+          <tr><td class="mod">api/analysis.py</td><td class="layer">API — POST /api/analysis/run</td><td><span class="dot ok">Implementado</span></td></tr>
+          <tr><td class="mod">ai/structuring.py</td><td class="layer">IA — voz → protocolo</td><td><span class="dot wip">Contrato definido (stub)</span></td></tr>
+          <tr><td class="mod">frontend/</td><td class="layer">Interface React</td><td><span class="dot plan">Planejado — Sprint 1</span></td></tr>
+          <tr><td class="mod">alembic/</td><td class="layer">Migrações de banco</td><td><span class="dot plan">Planejado — Sprint 1</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="eyebrow">Arquitetura</div>
+      <h2>Mapa do sistema</h2>
+      <p>Destacado em carmim, o que já está construído.</p>
+    </div>
+    <div class="arch">
+      <div class="layer-row">
+        <div class="layer-tag">Front-end</div>
+        <div class="chips">
+          <span class="chip">React + TypeScript</span>
+          <span class="chip">Editor de árvore</span>
+          <span class="chip">Query Builder</span>
+          <span class="chip">Gráficos (Recharts)</span>
+          <span class="chip">Gravador de áudio</span>
+        </div>
+      </div>
+      <div class="layer-row">
+        <div class="layer-tag">Back-end</div>
+        <div class="chips">
+          <span class="chip hl">FastAPI</span>
+          <span class="chip hl">Motor estatístico</span>
+          <span class="chip hl">Query builder</span>
+          <span class="chip">Auth (JWT · 4 papéis)</span>
+          <span class="chip">Serviço de IA (Celery)</span>
+        </div>
+      </div>
+      <div class="layer-row">
+        <div class="layer-tag">Dados</div>
+        <div class="chips">
+          <span class="chip hl">PostgreSQL — OLTP + EAV</span>
+          <span class="chip">DuckDB — OLAP</span>
+          <span class="chip">Redis — fila</span>
+          <span class="chip">MinIO/S3 — áudio e mídia</span>
+        </div>
+      </div>
+      <div class="layer-row">
+        <div class="layer-tag">IA em nuvem</div>
+        <div class="chips">
+          <span class="chip">Speech-to-text (Whisper/Deepgram)</span>
+          <span class="chip">LLM estruturador (Claude/GPT)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="eyebrow">Prévia · Motor estatístico</div>
+      <h2>O que a análise já é capaz de gerar</h2>
+      <p>Reprodução dos gráficos do TCC a partir dos <b>51 pacientes reais</b> coletados no InCor Kubrusly —
+        exatamente o formato que o endpoint <span class="mono">/api/analysis/run</span> devolve para o front desenhar.</p>
+    </div>
+
+    <div class="charts">
+      <div class="card">
+        <div class="cap"><h3>Distribuição por sexo</h3><span class="n">n = 51</span></div>
+        <div class="donut-wrap">
+          <div class="donut" style="background: conic-gradient(
+            var(--accent) 0 190.6deg,
+            color-mix(in srgb, var(--accent) 45%, var(--surface-2)) 190.6deg 345.9deg,
+            var(--pending) 345.9deg 360deg);"></div>
+          <div class="legend">
+            <div><i style="background:var(--accent)"></i> Masculino <b>&nbsp;27</b> <small>52,94%</small></div>
+            <div><i style="background:color-mix(in srgb, var(--accent) 45%, var(--surface-2))"></i> Feminino <b>&nbsp;22</b> <small>43,14%</small></div>
+            <div><i style="background:var(--pending)"></i> Indefinido <b>&nbsp;&nbsp;2</b> <small>3,92%</small></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cap"><h3>Faixa etária</h3><span class="n">anos</span></div>
+        <div class="bars">
+          <div class="bar-row"><span class="lab">18–32</span><div class="bar-track"><div class="bar-fill" style="width:11%"></div></div><span class="val">2</span></div>
+          <div class="bar-row"><span class="lab">32–46</span><div class="bar-track"><div class="bar-fill" style="width:22%"></div></div><span class="val">4</span></div>
+          <div class="bar-row"><span class="lab">46–60</span><div class="bar-track"><div class="bar-fill" style="width:56%"></div></div><span class="val">10</span></div>
+          <div class="bar-row"><span class="lab">60–74</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="val">18</span></div>
+          <div class="bar-row"><span class="lab">74–88</span><div class="bar-track"><div class="bar-fill" style="width:94%"></div></div><span class="val">17</span></div>
+        </div>
+      </div>
+
+      <div class="card" style="grid-column: 1 / -1;">
+        <div class="cap"><h3>Diagnósticos mais prevalentes</h3><span class="n">n = 63 · patologias podem se sobrepor</span></div>
+        <div class="bars">
+          <div class="bar-row"><span class="lab">Hipertensão (HAS)</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="val">38</span></div>
+          <div class="bar-row"><span class="lab">Infarto (IAM)</span><div class="bar-track"><div class="bar-fill" style="width:24%"></div></div><span class="val">9</span></div>
+          <div class="bar-row"><span class="lab">Doença coronariana</span><div class="bar-track"><div class="bar-fill" style="width:21%"></div></div><span class="val">8</span></div>
+          <div class="bar-row"><span class="lab">Arritmias</span><div class="bar-track"><div class="bar-fill" style="width:16%"></div></div><span class="val">6</span></div>
+          <div class="bar-row"><span class="lab">Insuf. cardíaca</span><div class="bar-track"><div class="bar-fill" style="width:5%"></div></div><span class="val">2</span></div>
+          <div class="bar-row"><span class="lab">Fibrilação atrial</span><div class="bar-track"><div class="bar-fill zero" style="width:2%"></div></div><span class="val">0</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="note">Estes números vêm dos resultados do TCC. No sistema, o mesmo cruzamento é dinâmico:
+      o pesquisador arrasta variáveis (ex.: <code>sexo × diagnóstico</code>) e o backend escolhe e roda o teste
+      apropriado — devolvendo gráfico, estatística, p-valor e interpretação.</p>
+  </section>
+
+  <footer>
+    Painel de progresso do <b>SINPE 2.0</b> · gerado a partir do estado atual do repositório
+    <a href="https://github.com/joaoo-lago/SINPE">joaoo-lago/SINPE</a>.
+    Atualizado no Sprint&nbsp;0 (Fundação).
+  </footer>
+</main>
