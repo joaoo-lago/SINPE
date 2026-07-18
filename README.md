@@ -14,7 +14,25 @@ pesquisa clínica com protocolos Mestre/Específico, **motor de busca e análise
 - **OLAP:** DuckDB + views materializadas (cruzamento rápido de dezenas de variáveis)
 - **Estatística:** scipy / statsmodels / pandas / pingouin (no backend)
 - **IA de voz:** STT em nuvem (Whisper/Deepgram) + LLM estruturador (Claude/GPT)
-- **Front-end:** React + TypeScript (a construir)
+- **Front-end:** protótipo navegável em `frontend/index.html` (React + TypeScript virá depois)
+
+## 👀 Ver a interface rodando (protótipo)
+
+`frontend/index.html` é um **protótipo autocontido** (fontes embutidas, sem build, sem servidor,
+funciona offline). Três formas de abrir:
+
+1. **Local:** baixe o arquivo e dê **duplo-clique** (abre no navegador).
+2. **Link que renderiza** (sem instalar nada) — via raw.githack:
+   `https://raw.githack.com/joaoo-lago/SINPE/main/frontend/index.html`
+   > ⚠️ Clicar no `.html` **dentro do GitHub** mostra o *código*, não a página. Use o link acima
+   > (ou o GitHub Pages abaixo) para ver a interface de verdade.
+3. **GitHub Pages** (URL fixa para a banca): repo → **Settings → Pages → branch `main`** →
+   depois acesse `https://joaoo-lago.github.io/SINPE/frontend/`.
+
+Perfis: **Administrador** (monta a árvore de protocolos — o centro do sistema), **Pesquisador**
+(cruza variáveis, gráficos + qui-quadrado) e **Programador** (console de manutenção).
+Os dados do TCC entram como **exemplo** do que a plataforma faz. É protótipo de interface:
+os dados vivem no navegador, ainda não persistem no backend real.
 
 ## O que já está nesta fundação
 
