@@ -893,7 +893,27 @@ function renderAnalise(host){
 /* -------- Nova coleta (manual + voz) -------- */
 const COL={patient:{nome:"",sexo:"Masculino",raca:"Branca"},protocolId:null,selected:new Set(),auto:new Set()};
 let REC=null;
-const SAMPLE="Paciente com hipertensão arterial, diabetes e tabagismo. Refere angina intensa retroesternal, além de dispneia, sudorese e náuseas. Em uso de ácido acetilsalicílico e betabloqueadores.";
+const SAMPLE="O paciente se queixa de falta de ar e de uma dor no peito em aperto. Teve um desmaio, está com suor frio e enjoo. É fumante, tem pressão alta e diabetes, e faz uso de aspirina.";
+/* Sinônimos e termos leigos → item clínico do protocolo (equivalência).
+   No sistema real esta etapa é feita por um LLM, que entende linguagem natural
+   aberta; aqui um dicionário demonstra o conceito na interface. */
+const SYNS=[
+  {t:["falta de ar","dificuldade para respirar","dificuldade de respirar","sem ar","cansaço para respirar"],alvo:"Dispneia"},
+  {t:["dor no peito","dor no coração","dor precordial"],alvo:"Angina"},
+  {t:["aperto no peito","peito apertado","em aperto","aperto"],alvo:"Aperto"},
+  {t:["pressão alta","pressão elevada","hipertenso"],alvo:"Hipertensão arterial"},
+  {t:["açúcar alto","glicose alta","diabético"],alvo:"Diabetes"},
+  {t:["fumante","fuma","fumo","cigarro","tabagista"],alvo:"Tabagismo"},
+  {t:["suor frio","suando","suando frio","transpiração excessiva"],alvo:"Sudorese"},
+  {t:["enjoo","enjôo","vontade de vomitar","ânsia de vômito"],alvo:"Náuseas"},
+  {t:["desmaio","desmaiou","perdeu os sentidos","apagão"],alvo:"Síncope"},
+  {t:["inchaço","inchado","pernas inchadas"],alvo:"Edema"},
+  {t:["cansaço","canseira","fraqueza"],alvo:"Fadiga"},
+  {t:["tontura","tonto","tonteira","zonzo"],alvo:"Tontura"},
+  {t:["coração acelerado","coração disparado","batedeira","palpitação"],alvo:"Palpitação"},
+  {t:["aspirina","aas"],alvo:"Ácido acetilsalicílico"},
+  {t:["não consigo respirar deitado","falta de ar deitado"],alvo:"Ortopneia"},
+];
 function protoNode(){return findById(TREE,COL.protocolId)||TREE;}
 function renderColeta(host){
   const specifics=TREE.children||[];
@@ -971,8 +991,13 @@ function drawSel(){
 function normv(s){return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");}
 function applyTranscript(text){
   const t=normv(text);
-  walk(protoNode(),n=>{const nn=normv(n.label);
-    if(nn.length>=5&&t.includes(nn)&&!COL.selected.has(n.id)){COL.selected.add(n.id);COL.auto.add(n.id);let p=parentOf(n);while(p){p.open=true;p=parentOf(p);}}});
+  const wanted=new Set();
+  // 1) termos leigos / sinônimos -> item clínico equivalente
+  SYNS.forEach(s=>{if(s.t.some(term=>t.includes(normv(term))))wanted.add(normv(s.alvo));});
+  // 2) termos que já batem com o próprio rótulo do protocolo
+  walk(protoNode(),n=>{const nn=normv(n.label);if(nn.length>=5&&t.includes(nn))wanted.add(nn);});
+  // marca os nós correspondentes dentro do protocolo selecionado
+  walk(protoNode(),n=>{if(wanted.has(normv(n.label))&&!COL.selected.has(n.id)){COL.selected.add(n.id);COL.auto.add(n.id);let p=parentOf(n);while(p){p.open=true;p=parentOf(p);}}});
   protoNode().open=true;drawColTree();drawSel();
 }
 function setVText(t){const el=document.getElementById("vtext");if(el)el.textContent=t||"…";}
