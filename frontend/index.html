@@ -898,21 +898,136 @@ const SAMPLE="O paciente se queixa de falta de ar e de uma dor no peito em apert
    No sistema real esta etapa é feita por um LLM, que entende linguagem natural
    aberta; aqui um dicionário demonstra o conceito na interface. */
 const SYNS=[
-  {t:["falta de ar","dificuldade para respirar","dificuldade de respirar","sem ar","cansaço para respirar"],alvo:"Dispneia"},
-  {t:["dor no peito","dor no coração","dor precordial"],alvo:"Angina"},
-  {t:["aperto no peito","peito apertado","em aperto","aperto"],alvo:"Aperto"},
-  {t:["pressão alta","pressão elevada","hipertenso"],alvo:"Hipertensão arterial"},
-  {t:["açúcar alto","glicose alta","diabético"],alvo:"Diabetes"},
-  {t:["fumante","fuma","fumo","cigarro","tabagista"],alvo:"Tabagismo"},
-  {t:["suor frio","suando","suando frio","transpiração excessiva"],alvo:"Sudorese"},
-  {t:["enjoo","enjôo","vontade de vomitar","ânsia de vômito"],alvo:"Náuseas"},
-  {t:["desmaio","desmaiou","perdeu os sentidos","apagão"],alvo:"Síncope"},
-  {t:["inchaço","inchado","pernas inchadas"],alvo:"Edema"},
-  {t:["cansaço","canseira","fraqueza"],alvo:"Fadiga"},
-  {t:["tontura","tonto","tonteira","zonzo"],alvo:"Tontura"},
-  {t:["coração acelerado","coração disparado","batedeira","palpitação"],alvo:"Palpitação"},
-  {t:["aspirina","aas"],alvo:"Ácido acetilsalicílico"},
-  {t:["não consigo respirar deitado","falta de ar deitado"],alvo:"Ortopneia"},
+  /* ---------- Respiração ---------- */
+  {t:["falta de ar","dificuldade para respirar","dificuldade de respirar","dificuldade em respirar","sem ar","sem folego","sem fôlego","ofegante","cansaço para respirar","cansaco para respirar","respiração curta","respiracao curta","não consigo respirar","nao consigo respirar","não consigo puxar o ar","nao consigo puxar o ar","sufocado","respiração difícil","arfando","respirando com dificuldade","canso quando ando","canso quando subo escada","cansa aos esforços","cansa aos esforcos","fico ofegante"],alvo:["Dispneia"]},
+  {t:["falta de ar deitado","não consigo respirar deitado","nao consigo respirar deitado","preciso de travesseiro alto","durmo sentado","falta de ar quando deito","sufoco ao deitar","fico sem ar deitado","durmo com vários travesseiros","durmo com varios travesseiros"],alvo:["Ortopneia"]},
+  {t:["acordo sufocado","acordo sem ar","falta de ar à noite","falta de ar a noite","acordo ofegante de noite","desperto sem ar","acordo com falta de ar"],alvo:["Dispneia paroxística noturna"]},
+  {t:["respiração rápida","respiracao rapida","respirando rápido","respirando rapido","respiração acelerada"],alvo:["Taquipneia","Frequência respiratória elevada"]},
+  {t:["chiado no peito","chiado","chiadeira","peito chiando","chio no peito"],alvo:["Sibilos difusos"]},
+  {t:["tosse","tossindo","tosse seca","pigarro","muita tosse"],alvo:["Tosse"]},
+  {t:["tosse com sangue","escarro com sangue","sangue no catarro","cuspindo sangue","catarro com sangue"],alvo:["Hemoptise"]},
+  /* ---------- Dor torácica ---------- */
+  {t:["dor no peito","dor no coração","dor no coracao","dor precordial","dor no peito esquerdo","opressão no peito","opressao no peito","dor torácica","dor toracica","pontada no peito","dor na região do coração","incômodo no peito","incomodo no peito","dor no lado esquerdo do peito"],alvo:["Angina","Dor"]},
+  {t:["aperto no peito","peito apertado","em aperto","como se apertasse","apertando o peito","sensação de aperto","sensacao de aperto"],alvo:["Aperto"]},
+  {t:["peso no peito","sensação de peso","sensacao de peso","peito pesado","como um peso no peito"],alvo:["Peso"]},
+  {t:["queimação no peito","queimacao no peito","ardência no peito","ardencia no peito","peito queimando"],alvo:["Queimação"]},
+  {t:["sufocante","sufocando","sensação de sufoco","sensacao de sufoco"],alvo:["Sufocante"]},
+  {t:["dor retroesternal","dor no meio do peito","atrás do osso do peito","atras do osso do peito"],alvo:["Retroesternal"]},
+  {t:["dor no braço esquerdo","dor no braco esquerdo","dor irradiando para o braço","dormência no braço esquerdo"],alvo:["Braço esquerdo"]},
+  {t:["dor nas costas","dor no dorso"],alvo:["Dorso"]},
+  {t:["dor no pescoço","dor no pescoco"],alvo:["Pescoço"]},
+  {t:["dor na mandíbula","dor na mandibula","dor no queixo"],alvo:["Mandíbula"]},
+  {t:["dor na boca do estômago","dor na boca do estomago","dor no epigástrio"],alvo:["Epigástrio"]},
+  {t:["dor no braço direito","dor no braco direito"],alvo:["Braço direito"]},
+  {t:["dor leve"],alvo:["Leve"]},
+  {t:["dor moderada"],alvo:["Moderada"]},
+  {t:["dor forte","dor intensa","dor muito forte"],alvo:["Intensa"]},
+  {t:["dor insuportável","dor insuportavel","pior dor da vida","dor terrível","dor terrivel"],alvo:["Intolerável"]},
+  {t:["angina estável","angina estavel","dor que melhora com repouso"],alvo:["Angina estável","Estável"]},
+  {t:["angina instável","angina instavel","dor no peito em repouso"],alvo:["Angina instável","Instável"]},
+  /* ---------- Palpitação / ritmo ---------- */
+  {t:["coração acelerado","coracao acelerado","coração disparado","coracao disparado","batedeira","coração batendo forte","coração aos pulos","coracao aos pulos","coração descompassado","sinto o coração batendo","coração na boca","coracao na boca","coração falhando","coração acelerou","palpitação","palpitacao","taquicardia"],alvo:["Palpitação","Taquicardia"]},
+  {t:["coração lento","coracao lento","batimento lento","coração devagar","pulso lento","coração batendo devagar"],alvo:["Bradicardia"]},
+  {t:["batimento irregular","coração irregular","coracao irregular","arritmia","batimentos descompassados","coração fora do ritmo"],alvo:["Arritmias"]},
+  {t:["fibrilação","fibrilacao"],alvo:["Fibrilação Atrial"]},
+  /* ---------- Sintomas gerais ---------- */
+  {t:["desmaio","desmaiei","desmaiou","perdi os sentidos","apaguei","apagão","apagao","perda de consciência","perda de consciencia","caí duro","cai duro","escureceu a vista","perdi a consciência","fiquei inconsciente"],alvo:["Síncope"]},
+  {t:["tontura","tonteira","tonto","zonzo","cabeça rodando","cabeca rodando","cabeça leve","vertigem","atordoado","mundo girando"],alvo:["Tontura"]},
+  {t:["suor frio","suando","suando frio","transpirando muito","suor excessivo","molhado de suor","suando em bicas","muito suor","sudorese"],alvo:["Sudorese"]},
+  {t:["enjoo","enjôo","enjoado","vontade de vomitar","ânsia","ansia","ânsia de vômito","embrulho no estômago","embrulho no estomago","nauseado","mal estar no estômago"],alvo:["Náuseas"]},
+  {t:["vômito","vomito","vomitei","vomitando","botei tudo pra fora","golfei"],alvo:["Vômitos"]},
+  {t:["fraqueza","fraco","sem força","sem forca","moleza","prostrado","sem energia","adinamia","abatido"],alvo:["Fraqueza","Fadiga"]},
+  {t:["cansaço","cansaco","canseira","cansado","esgotado","exausto","fadiga","sem disposição","cansa fácil","cansa facil","sem pique","cansado o tempo todo"],alvo:["Fadiga"]},
+  {t:["febre","febril","temperatura alta","corpo quente","estou quente"],alvo:["Febre"]},
+  {t:["febre baixa","febrinha","pouca febre"],alvo:["Febrícula (37,3–37,8 ℃)"]},
+  {t:["muito sono","sonolento","dormindo muito","sonolência","sonolencia"],alvo:["Sonolência"]},
+  /* ---------- Congestão / IC ---------- */
+  {t:["inchaço","inchaco","inchado","inchada","inchação","retenção de líquido","retencao de liquido","estou inchado"],alvo:["Edema"]},
+  {t:["pernas inchadas","perna inchada","pé inchado","pe inchado","pés inchados","pes inchados","tornozelo inchado","tornozelos inchados","inchaço nas pernas","pés e tornozelos inchados"],alvo:["Edema","Edema de membros inferiores"]},
+  {t:["inchado todo","corpo todo inchado","inchaço no corpo todo"],alvo:["Anasarca"]},
+  {t:["barriga inchada","barriga d agua","barriga d'agua","barriga cheia de água","abdome inchado","barriga estufada"],alvo:["Ascite"]},
+  {t:["fígado grande","figado grande","fígado aumentado","dor no fígado","dor no figado"],alvo:["Hepatomegalia"]},
+  {t:["acordo para urinar","levanto de noite para urinar","levanto para fazer xixi","urino muito de noite","xixi à noite","xixi a noite","muito xixi de noite"],alvo:["Noctúria"]},
+  {t:["dor na barriga","dor de barriga","dor abdominal"],alvo:["Dor abdominal"]},
+  {t:["sem apetite","sem fome","não sinto fome","nao sinto fome","inapetência","sem vontade de comer","perdi o apetite"],alvo:["Perda de apetite"]},
+  {t:["engordei","ganhei peso","perdi peso","emagreci","emagrecendo"],alvo:["Ganho ou perda de peso"]},
+  /* ---------- Fatores de risco ---------- */
+  {t:["pressão alta","pressao alta","pressão elevada","hipertenso","hipertensa","sofro de pressão","tenho pressão","pressão descontrolada"],alvo:["Hipertensão arterial","Pressão alta"]},
+  {t:["açúcar alto","acucar alto","glicose alta","diabético","diabetico","diabética","diabete","açúcar no sangue","tenho diabetes"],alvo:["Diabetes"]},
+  {t:["fumante","fuma","fumo","cigarro","tabagista","dependente de cigarro","ex fumante","uso de cigarro","fumo há anos","fumo muito"],alvo:["Tabagismo"]},
+  {t:["obeso","obesa","acima do peso","gordo","gorda","sobrepeso","excesso de peso"],alvo:["Obesidade"]},
+  {t:["colesterol alto","gordura no sangue","dislipidemia","colesterol elevado","colesterol ruim alto","ldl alto"],alvo:["Dislipidemia","LDL acima da meta"]},
+  {t:["colesterol bom baixo","hdl baixo"],alvo:["HDL baixo"]},
+  {t:["triglicerídeos altos","triglicerideos altos","triglicerídeo alto"],alvo:["Hipertrigliceridemia"]},
+  {t:["alcoólatra","alcoolatra","uso de álcool","bebida alcoólica","bebida alcoolica","etilista","bebe muito","bebe todo dia","ingere álcool"],alvo:["Etilismo"]},
+  {t:["sedentário","sedentario","não faz exercício","nao faz exercicio","não se exercita","vida parada","sem atividade física","não pratica atividade"],alvo:["Sedentarismo"]},
+  {t:["estressado","nervoso","ansioso","tensão emocional","muito estresse","sob pressão emocional","estresse"],alvo:["Estresse","Estresse emocional"]},
+  {t:["histórico na família","historico na familia","casos na família","hereditário","hereditario","tem na família","pais com problema no coração","história familiar","historia familiar"],alvo:["História familiar","Histórico familiar"]},
+  {t:["dorme mal","insônia","insonia","não dorme direito","apneia do sono","ronca muito","sono ruim"],alvo:["Distúrbios do sono"]},
+  {t:["come muito sal","sal demais","comida salgada","gosta de sal","muito sal na comida"],alvo:["Alimentação rica em sal"]},
+  {t:["grávida","gravida","gestante","gestação","gestacao","gravidez"],alvo:["Gravidez"]},
+  {t:["idoso","idade avançada","idade avancada","pessoa de idade","muito idoso"],alvo:["Idade avançada"]},
+  /* ---------- Antecedentes / complicações ---------- */
+  {t:["infarto","enfarte","enfartei","infartei","ataque cardíaco","ataque cardiaco","infartou","já tive infarto"],alvo:["Infarto agudo do miocárdio","IAM <60 e 65 anos"]},
+  {t:["derrame","avc","isquemia cerebral","teve um derrame","acidente vascular"],alvo:["AVC","AVE"]},
+  {t:["coração parou","coracao parou","parada cardíaca","parada cardiaca"],alvo:["Parada cardíaca"]},
+  {t:["insuficiência cardíaca","insuficiencia cardiaca","coração fraco","coracao fraco","coração cansado","icc"],alvo:["Insuficiência cardíaca"]},
+  {t:["cateterismo","stent","angioplastia","colocou stent","coloquei stent"],alvo:["ATC/RVM"]},
+  /* ---------- Medicamentos ---------- */
+  {t:["aspirina","aas","ácido acetilsalicílico"],alvo:["Ácido acetilsalicílico"]},
+  {t:["plavix","clopidogrel"],alvo:["Clopidogrel"]},
+  {t:["brilinta","ticagrelor"],alvo:["Ticagrelor"]},
+  {t:["nitrato","isordil","nitratos","monocordil"],alvo:["Nitratos"]},
+  {t:["nitroglicerina","tridil"],alvo:["Nitroglicerina"]},
+  {t:["betabloqueador","betabloqueadores"],alvo:["Betabloqueadores","Betabloqueador"]},
+  {t:["propranolol"],alvo:["Propranolol"]},
+  {t:["atenolol"],alvo:["Atenolol"]},
+  {t:["carvedilol"],alvo:["Carvedilol"]},
+  {t:["metoprolol"],alvo:["Metoprolol"]},
+  {t:["bisoprolol"],alvo:["Bisoprolol"]},
+  {t:["estatina","sinvastatina","atorvastatina","rosuvastatina","remédio de colesterol","remedio de colesterol","remédio pro colesterol"],alvo:["Estatinas"]},
+  {t:["captopril"],alvo:["Captopril"]},
+  {t:["enalapril"],alvo:["Enalapril"]},
+  {t:["losartana","losartan"],alvo:["Losartana"]},
+  {t:["valsartana"],alvo:["Valsartana"]},
+  {t:["candesartana"],alvo:["Candesartana"]},
+  {t:["telmisartana"],alvo:["Telmisartana"]},
+  {t:["olmesartana"],alvo:["Olmesartana"]},
+  {t:["diurético","diuretico","remédio de xixi","remedio de xixi","remédio para urinar"],alvo:["Diuréticos"]},
+  {t:["furosemida","lasix"],alvo:["Furosemida"]},
+  {t:["hidroclorotiazida"],alvo:["Hidroclorotiazida"]},
+  {t:["clortalidona"],alvo:["Clortalidona"]},
+  {t:["espironolactona","aldactone"],alvo:["Espironolactona"]},
+  {t:["anlodipino","anlodipina"],alvo:["Anlodipino"]},
+  {t:["nifedipino","adalat"],alvo:["Nifedipino"]},
+  {t:["diltiazem"],alvo:["Diltiazem"]},
+  {t:["verapamil"],alvo:["Verapamil"]},
+  {t:["hidralazina"],alvo:["Hidralazina"]},
+  {t:["clonidina"],alvo:["Clonidina"]},
+  {t:["anticoagulante","afinar o sangue","remédio pra afinar o sangue","afinador de sangue"],alvo:["Anticoagulantes","Heparina"]},
+  {t:["varfarina","marevan","warfarina"],alvo:["Varfarina"]},
+  {t:["digoxina","digitálico","digitalico"],alvo:["Digoxina","Digitálicos"]},
+  {t:["amiodarona","dronedarona","sotalol"],alvo:["Amiodarona","Amiodarona, dronedarona, sotalol"]},
+  {t:["flecainida","propafenona"],alvo:["Propafenona","Flecainida, propafenona"]},
+  {t:["heparina"],alvo:["Heparina"]},
+  {t:["oxigênio","oxigenio","máscara de oxigênio"],alvo:["O2"]},
+  {t:["ponte de safena","cirurgia do coração","cirurgia do coracao","revascularização","revascularizacao","ponte de mamária"],alvo:["Revascularização do miocárdio"]},
+  {t:["cardioversão","cardioversao","choque no coração"],alvo:["Cardioversão elétrica"]},
+  {t:["ablação","ablacao","ablação por cateter","ablação por radiofrequência"],alvo:["Ablação por cateter","Ablação por radiofrequência"]},
+  {t:["marcapasso","desfibrilador"],alvo:["Marcapasso, desfibrilador"]},
+  {t:["fibrinólise","fibrinolise","trombolítico","trombolitico"],alvo:["Fibrinólise"]},
+  /* ---------- Exames ---------- */
+  {t:["eletrocardiograma","ecg","fez ecg"],alvo:["ECG","ECG com intervalo R-R irregular"]},
+  {t:["holter","holter de 24h"],alvo:["Holter de 24h"]},
+  {t:["teste ergométrico","teste ergometrico","teste de esforço","esteira"],alvo:["Teste ergométrico"]},
+  {t:["raio x de tórax","radiografia de tórax","radiografia de torax","rx de tórax"],alvo:["Radiografia de tórax"]},
+  {t:["ressonância do coração","ressonancia do coracao","rm do coração"],alvo:["RM do coração"]},
+  {t:["biomarcadores","troponina","bnp"],alvo:["Biomarcadores"]},
+  /* ---------- Retorno ---------- */
+  {t:["melhorou totalmente","melhora total","estou bem","sem queixas"],alvo:["Melhora total"]},
+  {t:["melhorou um pouco","melhora parcial","um pouco melhor"],alvo:["Melhora parcial"]},
+  {t:["na mesma","sem mudança","inalterado","continua igual"],alvo:["Inalterado"]},
+  {t:["piorou","está pior","piora"],alvo:["Piora"]},
 ];
 function protoNode(){return findById(TREE,COL.protocolId)||TREE;}
 function renderColeta(host){
@@ -989,13 +1104,15 @@ function drawSel(){
   host.querySelectorAll(".rm").forEach(b=>b.onclick=()=>{COL.selected.delete(b.dataset.id);COL.auto.delete(b.dataset.id);drawColTree();drawSel();});
 }
 function normv(s){return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");}
+/* casa a expressão como palavra inteira (evita "fa" dentro de "falta") */
+function hit(t,phrase){const e=phrase.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");return new RegExp("(^|[^0-9a-z])"+e+"([^0-9a-z]|$)").test(t);}
 function applyTranscript(text){
   const t=normv(text);
   const wanted=new Set();
-  // 1) termos leigos / sinônimos -> item clínico equivalente
-  SYNS.forEach(s=>{if(s.t.some(term=>t.includes(normv(term))))wanted.add(normv(s.alvo));});
+  // 1) termos leigos / sinônimos -> um ou mais itens clínicos equivalentes
+  SYNS.forEach(s=>{if(s.t.some(term=>hit(t,normv(term))))s.alvo.forEach(a=>wanted.add(normv(a)));});
   // 2) termos que já batem com o próprio rótulo do protocolo
-  walk(protoNode(),n=>{const nn=normv(n.label);if(nn.length>=5&&t.includes(nn))wanted.add(nn);});
+  walk(protoNode(),n=>{const nn=normv(n.label);if(nn.length>=5&&hit(t,nn))wanted.add(nn);});
   // marca os nós correspondentes dentro do protocolo selecionado
   walk(protoNode(),n=>{if(wanted.has(normv(n.label))&&!COL.selected.has(n.id)){COL.selected.add(n.id);COL.auto.add(n.id);let p=parentOf(n);while(p){p.open=true;p=parentOf(p);}}});
   protoNode().open=true;drawColTree();drawSel();
