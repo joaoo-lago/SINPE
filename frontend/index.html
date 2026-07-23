@@ -253,6 +253,29 @@
   .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:13px 22px;border-radius:13px;font-size:13.5px;font-weight:700;box-shadow:var(--sh-lg);z-index:60}
   @media (prefers-reduced-motion:no-preference){.toast{animation:up .25s ease}@keyframes up{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}}
 
+  /* ---------- Comparativo IA × Manual ---------- */
+  .vinheta{padding:14px 16px;border-bottom:1px solid var(--line)}
+  .vhead2{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px}
+  .vinheta p{margin:0;font-size:14.5px;line-height:1.55;font-weight:500}
+  .gab{margin-top:9px;font-size:11.5px;color:var(--muted);font-family:var(--mono)}
+  .bmbar{display:flex;flex-wrap:wrap;gap:14px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+  .round{display:flex;flex-direction:column;gap:7px}
+  .round>b{font-size:12px;font-weight:700}
+  .rowbtns{display:flex;gap:7px;flex-wrap:wrap}
+  .timer{margin-left:auto;font-family:var(--mono);font-size:26px;font-weight:700;color:var(--accent);letter-spacing:-.02em;min-width:96px;text-align:right}
+  .cmp{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .cmp th,.cmp td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:center}
+  .cmp tr:last-child td{border-bottom:0}
+  .cmp th{background:var(--surface-3);color:var(--muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.03em}
+  .cmp td:first-child,.cmp th:first-child{text-align:left;font-weight:600}
+  .cmp .num{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:14px;font-weight:600}
+  .cmp .best{color:var(--good)}
+  .cmp-note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.5}
+  .cmp-verdict{background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:13px 14px;margin-top:14px;font-size:13.5px;font-weight:600}
+  .cmp-verdict b{color:var(--accent-ink)}
+  .bm-empty{color:var(--muted);font-size:13px;text-align:center;padding:20px 8px;line-height:1.5}
+  .pend{opacity:.5}
+
   @media (max-width:860px){
     .editor{grid-template-columns:1fr}.inspector{position:static}
     .grid2{grid-template-columns:1fr}.roles{grid-template-columns:1fr}
@@ -859,6 +882,7 @@ function renderResearcher(v){
       <p>Crie uma coleta a partir de um protocolo — marcando itens na árvore ou ditando por voz — e analise os dados. Os dados do TCC entram como exemplo do que a plataforma produz.</p></div>
     <div class="tabs">
       <button class="tab" data-tab="coleta">🩺 Nova coleta</button>
+      <button class="tab" data-tab="bench">⏱️ Comparativo IA × Manual</button>
       <button class="tab" data-tab="analise">📊 Análise de dados</button>
     </div>
     <div id="userView"></div>`;
@@ -868,7 +892,9 @@ function renderResearcher(v){
 function paintUserTab(){
   document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-pressed",t.dataset.tab===USERTAB));
   const h=document.getElementById("userView");if(!h)return;
-  if(USERTAB==="coleta")renderColeta(h);else renderAnalise(h);
+  if(USERTAB==="coleta")renderColeta(h);
+  else if(USERTAB==="bench")renderBench(h);
+  else renderAnalise(h);
 }
 function renderAnalise(host){
   host.innerHTML=`
@@ -900,7 +926,7 @@ const SAMPLE="O paciente se queixa de falta de ar e de uma dor no peito em apert
 const SYNS=[
   /* ---------- Respiração ---------- */
   {t:["falta de ar","dificuldade para respirar","dificuldade de respirar","dificuldade em respirar","sem ar","sem folego","sem fôlego","ofegante","cansaço para respirar","cansaco para respirar","respiração curta","respiracao curta","não consigo respirar","nao consigo respirar","não consigo puxar o ar","nao consigo puxar o ar","sufocado","respiração difícil","arfando","respirando com dificuldade","canso quando ando","canso quando subo escada","cansa aos esforços","cansa aos esforcos","fico ofegante"],alvo:["Dispneia"]},
-  {t:["falta de ar deitado","não consigo respirar deitado","nao consigo respirar deitado","preciso de travesseiro alto","durmo sentado","falta de ar quando deito","sufoco ao deitar","fico sem ar deitado","durmo com vários travesseiros","durmo com varios travesseiros"],alvo:["Ortopneia"]},
+  {t:["falta de ar deitado","falta de ar ao deitar","falta de ar para deitar","sem ar ao deitar","não consigo respirar deitado","nao consigo respirar deitado","preciso de travesseiro alto","durmo sentado","falta de ar quando deito","sufoco ao deitar","fico sem ar deitado","durmo com vários travesseiros","durmo com varios travesseiros"],alvo:["Ortopneia"]},
   {t:["acordo sufocado","acordo sem ar","falta de ar à noite","falta de ar a noite","acordo ofegante de noite","desperto sem ar","acordo com falta de ar"],alvo:["Dispneia paroxística noturna"]},
   {t:["respiração rápida","respiracao rapida","respirando rápido","respirando rapido","respiração acelerada"],alvo:["Taquipneia","Frequência respiratória elevada"]},
   {t:["chiado no peito","chiado","chiadeira","peito chiando","chio no peito"],alvo:["Sibilos difusos"]},
@@ -913,7 +939,7 @@ const SYNS=[
   {t:["queimação no peito","queimacao no peito","ardência no peito","ardencia no peito","peito queimando"],alvo:["Queimação"]},
   {t:["sufocante","sufocando","sensação de sufoco","sensacao de sufoco"],alvo:["Sufocante"]},
   {t:["dor retroesternal","dor no meio do peito","atrás do osso do peito","atras do osso do peito"],alvo:["Retroesternal"]},
-  {t:["dor no braço esquerdo","dor no braco esquerdo","dor irradiando para o braço","dormência no braço esquerdo"],alvo:["Braço esquerdo"]},
+  {t:["dor no braço esquerdo","dor no braco esquerdo","dor irradiando para o braço","irradiando para o braço esquerdo","irradia para o braço esquerdo","dormência no braço esquerdo"],alvo:["Braço esquerdo"]},
   {t:["dor nas costas","dor no dorso"],alvo:["Dorso"]},
   {t:["dor no pescoço","dor no pescoco"],alvo:["Pescoço"]},
   {t:["dor na mandíbula","dor na mandibula","dor no queixo"],alvo:["Mandíbula"]},
@@ -947,7 +973,7 @@ const SYNS=[
   {t:["inchado todo","corpo todo inchado","inchaço no corpo todo"],alvo:["Anasarca"]},
   {t:["barriga inchada","barriga d agua","barriga d'agua","barriga cheia de água","abdome inchado","barriga estufada"],alvo:["Ascite"]},
   {t:["fígado grande","figado grande","fígado aumentado","dor no fígado","dor no figado"],alvo:["Hepatomegalia"]},
-  {t:["acordo para urinar","levanto de noite para urinar","levanto para fazer xixi","urino muito de noite","xixi à noite","xixi a noite","muito xixi de noite"],alvo:["Noctúria"]},
+  {t:["acordo para urinar","acorda para urinar","acorda várias vezes para urinar","levanta para urinar","levanta à noite para urinar","levanto de noite para urinar","levanto para fazer xixi","urino muito de noite","xixi à noite","xixi a noite","muito xixi de noite"],alvo:["Noctúria"]},
   {t:["dor na barriga","dor de barriga","dor abdominal"],alvo:["Dor abdominal"]},
   {t:["sem apetite","sem fome","não sinto fome","nao sinto fome","inapetência","sem vontade de comer","perdi o apetite"],alvo:["Perda de apetite"]},
   {t:["engordei","ganhei peso","perdi peso","emagreci","emagrecendo"],alvo:["Ganho ou perda de peso"]},
@@ -1147,6 +1173,155 @@ function finalizeColeta(){
   COL.selected.clear();COL.auto.clear();drawColTree();drawSel();setVText("…");
 }
 function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),3400);}
+
+/* ================= COMPARATIVO IA × MANUAL (metodologia do PIBIC) ================= */
+const CASES=[
+  {protocolo:"Infarto Agudo do Miocárdio",titulo:"Homem, 62 anos — dor torácica",
+   vinheta:"Homem de 62 anos, fumante e hipertenso, também diabético. Chegou com dor no peito em aperto, de forte intensidade, irradiando para o braço esquerdo, com falta de ar, suor frio e náuseas. No hospital recebeu aspirina e betabloqueador.",
+   gabarito:["Tabagismo","Hipertensão arterial","Diabetes","Angina","Aperto","Intensa","Braço esquerdo","Dispneia","Sudorese","Náuseas","Ácido acetilsalicílico","Betabloqueadores"]},
+  {protocolo:"Hipertensão Arterial",titulo:"Mulher, 55 anos — hipertensão",
+   vinheta:"Mulher de 55 anos, obesa e sedentária, que come muito sal. Está em uso de losartana e hidroclorotiazida.",
+   gabarito:["Obesidade","Sedentarismo","Alimentação rica em sal","Losartana","Hidroclorotiazida"]},
+  {protocolo:"Insuficiência Cardíaca",titulo:"Idoso — insuficiência cardíaca",
+   vinheta:"Idoso com muito cansaço, falta de ar ao deitar, pernas inchadas e barriga inchada, e que acorda várias vezes para urinar. Faz uso de diurético.",
+   gabarito:["Fadiga","Ortopneia","Edema de membros inferiores","Ascite","Noctúria","Diuréticos"]},
+  {protocolo:"Arritmias (não fibrilação atrial)",titulo:"Paciente — palpitações",
+   vinheta:"Paciente relata coração acelerado, muita tontura e um episódio de desmaio. Fez holter e está em uso de amiodarona.",
+   gabarito:["Palpitação","Tontura","Síncope","Holter de 24h","Amiodarona, dronedarona, sotalol"]},
+];
+const BM={caseIdx:0,active:null,sel:new Set(),auto:new Set(),t0:0,tick:null,results:{manual:null,voz:null}};
+function bmProto(){return TREE.children.find(c=>c.label===CASES[BM.caseIdx].protocolo)||TREE;}
+function bmMark(text){ // marca itens no protocolo do caso a partir de texto (sinônimos + rótulos)
+  const t=normv(text),wanted=new Set();
+  SYNS.forEach(s=>{if(s.t.some(term=>hit(t,normv(term))))s.alvo.forEach(a=>wanted.add(normv(a)));});
+  const root=bmProto();
+  walk(root,n=>{const nn=normv(n.label);if(nn.length>=5&&hit(t,nn))wanted.add(nn);});
+  walk(root,n=>{if(wanted.has(normv(n.label))){BM.sel.add(n.id);BM.auto.add(n.id);let p=parentOf(n);while(p){p.open=true;p=parentOf(p);}}});
+}
+function renderBench(host){
+  const c=CASES[BM.caseIdx];
+  host.innerHTML=`
+    <div class="coleta-grid">
+      <div class="panel">
+        <div class="protobar"><select id="bmCase">
+          ${CASES.map((x,i)=>`<option value="${i}" ${i===BM.caseIdx?"selected":""}>${escapeHtml(x.titulo)} · ${escapeHtml(x.protocolo)}</option>`).join("")}
+        </select></div>
+        <div class="vinheta"><div class="vhead2">Caso clínico — roteiro para a coleta</div>
+          <p id="bmVinheta">${escapeHtml(c.vinheta)}</p>
+          <div class="gab">Gabarito do caso: ${c.gabarito.length} itens a serem marcados</div></div>
+        <div class="bmbar">
+          <div class="round"><b>1 · Coleta manual</b><div class="rowbtns">
+            <button class="tbtn pri" id="bmMS">▶ Iniciar</button>
+            <button class="tbtn" id="bmME" disabled>■ Concluir</button></div></div>
+          <div class="round"><b>2 · Coleta por voz</b><div class="rowbtns">
+            <button class="tbtn pri" id="bmVS">🎙️ Iniciar</button>
+            <button class="tbtn" id="bmVD" disabled>▶ Ditar roteiro</button>
+            <button class="tbtn" id="bmVE" disabled>■ Concluir</button></div></div>
+          <div class="timer" id="bmTimer">0,0 s</div>
+        </div>
+        <div class="tree" id="bmTree"></div>
+      </div>
+      <div class="panel coleta-side">
+        <div class="panel-head"><h3>Resultado comparativo</h3></div>
+        <div class="insp-body" id="bmResult"></div>
+      </div>
+    </div>`;
+  document.getElementById("bmCase").onchange=e=>{BM.caseIdx=+e.target.value;bmReset();paintUserTab();};
+  document.getElementById("bmMS").onclick=()=>bmStart("manual");
+  document.getElementById("bmME").onclick=bmStop;
+  document.getElementById("bmVS").onclick=()=>bmStart("voz");
+  document.getElementById("bmVD").onclick=bmDictate;
+  document.getElementById("bmVE").onclick=bmStop;
+  bmProto().open=true;drawBmTree();drawBmResult();bmButtons();
+}
+function bmReset(){BM.active=null;BM.sel.clear();BM.auto.clear();stopTimer();BM.results={manual:null,voz:null};}
+function bmButtons(){
+  const on=BM.active;const set=(id,dis)=>{const b=document.getElementById(id);if(b)b.disabled=dis;};
+  set("bmMS",on!==null);set("bmME",on!=="manual");
+  set("bmVS",on!==null);set("bmVD",on!=="voz");set("bmVE",on!=="voz");
+}
+function startTimer(){BM.t0=performance.now();const el=document.getElementById("bmTimer");
+  BM.tick=setInterval(()=>{if(el)el.textContent=((performance.now()-BM.t0)/1000).toFixed(1).replace(".",",")+" s";},100);}
+function stopTimer(){if(BM.tick){clearInterval(BM.tick);BM.tick=null;}return BM.t0?performance.now()-BM.t0:0;}
+function bmStart(mode){
+  BM.active=mode;BM.sel.clear();BM.auto.clear();startTimer();bmButtons();drawBmTree();
+  const el=document.getElementById("bmTimer");if(el)el.textContent="0,0 s";
+  if(mode==="voz")bmStartMic();
+}
+function bmStartMic(){ // tenta microfone real; se indisponível, o usuário usa "Ditar roteiro"
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
+  try{BMREC=new SR();BMREC.lang="pt-BR";BMREC.continuous=true;BMREC.interimResults=true;let base="";
+    BMREC.onresult=e=>{let it="";for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i];if(r.isFinal)base+=r[0].transcript+" ";else it+=r[0].transcript;}bmMark(base+it);drawBmTree();};
+    BMREC.onerror=()=>{};BMREC.onend=()=>{};BMREC.start();}catch(e){}
+}
+let BMREC=null;
+function bmDictate(){ // simula o ditado do roteiro (para demo sem microfone)
+  const w=CASES[BM.caseIdx].vinheta.split(" ");let i=0;
+  (function step(){if(BM.active!=="voz")return;if(i<w.length){bmMark(w.slice(0,++i).join(" "));drawBmTree();setTimeout(step,110);}else{bmStop();}})();
+}
+function bmStop(){
+  if(BMREC){try{BMREC.stop();}catch(e){}BMREC=null;}
+  const ms=stopTimer();const mode=BM.active;if(!mode)return;
+  const marked=[...BM.sel].map(id=>findById(TREE,id)?.label).filter(Boolean);
+  BM.results[mode]={timeMs:ms,...bmMetrics(CASES[BM.caseIdx].gabarito,marked)};
+  BM.active=null;bmButtons();drawBmTree();drawBmResult();
+  const el=document.getElementById("bmTimer");if(el)el.textContent=(ms/1000).toFixed(1).replace(".",",")+" s";
+}
+function bmMetrics(G,M){
+  const g=new Set(G.map(normv)),m=new Set(M.map(normv));
+  let tp=0;m.forEach(x=>{if(g.has(x))tp++;});
+  const fp=m.size-tp,fn=g.size-tp;
+  const prec=tp+fp?tp/(tp+fp):0,rec=tp+fn?tp/(tp+fn):0,f1=prec+rec?2*prec*rec/(prec+rec):0;
+  return {tp,fp,fn,prec,rec,f1,total:g.size};
+}
+function drawBmTree(){const host=document.getElementById("bmTree");if(!host)return;host.innerHTML="";host.appendChild(bmNodeEl(bmProto(),true));}
+function bmNodeEl(node,isRoot){
+  const wrap=document.createElement("div");wrap.className="tnode";
+  const row=document.createElement("div");
+  const picked=BM.sel.has(node.id),auto=BM.auto.has(node.id);
+  row.className="trow"+(picked?" picked":"")+(auto?" auto":"");
+  const hasKids=(node.children||[]).length>0;
+  if(hasKids){const tw=document.createElement("div");tw.className="twist"+(node.open?" open":"");tw.textContent="▶";
+    tw.onclick=e=>{e.stopPropagation();node.open=!node.open;drawBmTree();};row.appendChild(tw);}
+  else{const s=document.createElement("div");s.style.cssText="width:22px;flex:none";row.appendChild(s);}
+  const chk=document.createElement("div");chk.className="chk";chk.textContent=picked?"✓":"";row.appendChild(chk);
+  const lab=document.createElement("div");lab.className="tlabel";lab.textContent=isRoot?("🫀 "+node.label):node.label;row.appendChild(lab);
+  if(auto){const b=document.createElement("span");b.className="badge autob";b.textContent="voz";row.appendChild(b);}
+  row.onclick=e=>{if(e.target.classList.contains("twist"))return;if(BM.active!=="manual")return;
+    if(BM.sel.has(node.id)){BM.sel.delete(node.id);}else{const p=parentOf(node);if(p&&p.selection==="single")(p.children||[]).forEach(s=>BM.sel.delete(s.id));BM.sel.add(node.id);}drawBmTree();};
+  wrap.appendChild(row);
+  if(hasKids&&node.open){const kids=document.createElement("div");kids.className="tchildren";node.children.forEach(c=>kids.appendChild(bmNodeEl(c,false)));wrap.appendChild(kids);}
+  return wrap;
+}
+function drawBmResult(){
+  const host=document.getElementById("bmResult");if(!host)return;
+  const m=BM.results.manual,v=BM.results.voz;
+  if(!m&&!v){host.innerHTML=`<div class="bm-empty">Faça a <b>coleta manual</b> e depois a <b>por voz</b> do mesmo caso. O sistema cronometra as duas e compara tempo e acurácia contra o gabarito.</div>`;return;}
+  const pct=x=>(x*100).toFixed(0)+"%";
+  const secs=r=>r?(r.timeMs/1000).toFixed(1).replace(".",",")+" s":"—";
+  const cell=(r,f,fmt,best)=>{if(!r)return `<td class="num pend">—</td>`;const val=fmt(r[f]);const isBest=best&&best(m,v)===r;return `<td class="num${isBest?" best":""}">${val}</td>`;};
+  const lessTime=(a,b)=>{if(!a||!b)return null;return a.timeMs<=b.timeMs?a:b;};
+  const more=f=>(a,b)=>{if(!a||!b)return null;return a[f]>=b[f]?a:b;};
+  host.innerHTML=`
+    <table class="cmp">
+      <tr><th>Métrica</th><th>Manual</th><th>Por voz</th></tr>
+      <tr><td>Tempo de coleta</td>${cell(m,"timeMs",()=>secs(m),lessTime)}${cell(v,"timeMs",()=>secs(v),lessTime)}</tr>
+      <tr><td>Itens corretos</td>${cell(m,"tp",x=>x+"/"+m.total)}${cell(v,"tp",x=>x+"/"+v.total)}</tr>
+      <tr><td>Perdidos</td>${cell(m,"fn",x=>x)}${cell(v,"fn",x=>x)}</tr>
+      <tr><td>Extras (errados)</td>${cell(m,"fp",x=>x)}${cell(v,"fp",x=>x)}</tr>
+      <tr><td>Sensibilidade</td>${cell(m,"rec",pct,more("rec"))}${cell(v,"rec",pct,more("rec"))}</tr>
+      <tr><td>Precisão</td>${cell(m,"prec",pct,more("prec"))}${cell(v,"prec",pct,more("prec"))}</tr>
+      <tr><td>F1</td>${cell(m,"f1",pct,more("f1"))}${cell(v,"f1",pct,more("f1"))}</tr>
+    </table>
+    ${(m&&v)?bmVerdict(m,v):`<div class="cmp-note">Conclua a outra rodada para ver o comparativo completo.</div>`}
+    <div class="cmp-note">No estudo real (PIBIC), a coleta por voz ocorre <b>durante a consulta</b>; a manual exige digitação à parte. As métricas seguem a metodologia de tempo e qualidade dos dados.</div>`;
+}
+function bmVerdict(m,v){
+  const dt=m.timeMs?Math.round((1-v.timeMs/m.timeMs)*100):0;
+  const faster=v.timeMs<m.timeMs;
+  return `<div class="cmp-verdict">Por voz foi <b>${Math.abs(dt)}% ${faster?"mais rápida":"mais lenta"}</b> que a manual — sensibilidade ${(v.rec*100).toFixed(0)}%, precisão ${(v.prec*100).toFixed(0)}%.</div>`;
+}
+
 function drawUni(f){
   const data=counts(f),total=PATIENTS.length,max=Math.max(...data.map(d=>d[1]));
   const host=document.getElementById("uniChart");
