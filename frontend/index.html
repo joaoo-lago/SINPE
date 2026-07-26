@@ -271,6 +271,7 @@
   .cmp .num{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:14px;font-weight:600}
   .cmp .best{color:var(--good)}
   .cmp-note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.5}
+  .cmp-actions{display:flex;gap:9px;margin-top:13px;flex-wrap:wrap}
   .cmp-verdict{background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:13px 14px;margin-top:14px;font-size:13.5px;font-weight:600}
   .cmp-verdict b{color:var(--accent-ink)}
   .bm-empty{color:var(--muted);font-size:13px;text-align:center;padding:20px 8px;line-height:1.5}
@@ -1400,8 +1401,11 @@ function renderBench(host){
         <div class="tree" id="bmTree"></div>
       </div>
       <div class="panel coleta-side">
-        <div class="panel-head"><h3>Resultado comparativo</h3></div>
+        <div class="panel-head"><h3>Resultado do caso</h3>
+          <button class="tbtn pri" id="bmRegister" disabled style="margin-left:auto;padding:6px 11px">➕ Registrar no estudo</button></div>
         <div class="insp-body" id="bmResult"></div>
+        <div class="panel-head" style="border-top:1px solid var(--line)"><h3>Estudo acumulado</h3><span class="count" id="bmN">0</span></div>
+        <div class="insp-body" id="bmStudy"></div>
       </div>
     </div>`;
   document.getElementById("bmCase").onchange=e=>{BM.caseIdx=+e.target.value;bmReset();paintUserTab();};
@@ -1410,7 +1414,8 @@ function renderBench(host){
   document.getElementById("bmVS").onclick=()=>bmStart("voz");
   document.getElementById("bmVD").onclick=bmDictate;
   document.getElementById("bmVE").onclick=bmStop;
-  bmProto().open=true;drawBmTree();drawBmResult();bmButtons();
+  document.getElementById("bmRegister").onclick=registerStudy;
+  bmProto().open=true;drawBmTree();drawBmResult();bmButtons();drawStudy();
 }
 function bmReset(){BM.active=null;BM.sel.clear();BM.auto.clear();stopTimer();BM.results={manual:null,voz:null};}
 function bmButtons(){
@@ -1474,6 +1479,7 @@ function bmNodeEl(node,isRoot){
 function drawBmResult(){
   const host=document.getElementById("bmResult");if(!host)return;
   const m=BM.results.manual,v=BM.results.voz;
+  const rb=document.getElementById("bmRegister");if(rb)rb.disabled=!(m&&v);
   if(!m&&!v){host.innerHTML=`<div class="bm-empty">Faça a <b>coleta manual</b> e depois a <b>por voz</b> do mesmo caso. O sistema cronometra as duas e compara tempo e acurácia contra o gabarito.</div>`;return;}
   const pct=x=>(x*100).toFixed(0)+"%";
   const secs=r=>r?(r.timeMs/1000).toFixed(1).replace(".",",")+" s":"—";
@@ -1498,6 +1504,84 @@ function bmVerdict(m,v){
   const dt=m.timeMs?Math.round((1-v.timeMs/m.timeMs)*100):0;
   const faster=v.timeMs<m.timeMs;
   return `<div class="cmp-verdict">Por voz foi <b>${Math.abs(dt)}% ${faster?"mais rápida":"mais lenta"}</b> que a manual — sensibilidade ${(v.rec*100).toFixed(0)}%, precisão ${(v.prec*100).toFixed(0)}%.</div>`;
+}
+
+/* ---------- Modo estudo: acumula casos, tira médias e roda teste t pareado ---------- */
+let STUDY=(()=>{try{return JSON.parse(localStorage.getItem("sinpe_estudo")||"[]");}catch(e){return[];}})();
+function saveStudy(){try{localStorage.setItem("sinpe_estudo",JSON.stringify(STUDY));}catch(e){}}
+function mean(a){return a.length?a.reduce((s,x)=>s+x,0)/a.length:0;}
+function betacf(a,b,x){ // fração contínua (Numerical Recipes)
+  const FPMIN=1e-30;let qab=a+b,qap=a+1,qam=a-1,c=1,d=1-qab*x/qap;
+  if(Math.abs(d)<FPMIN)d=FPMIN;d=1/d;let h=d;
+  for(let m=1;m<=200;m++){const m2=2*m;
+    let aa=m*(b-m)*x/((qam+m2)*(a+m2));d=1+aa*d;if(Math.abs(d)<FPMIN)d=FPMIN;
+    c=1+aa/c;if(Math.abs(c)<FPMIN)c=FPMIN;d=1/d;h*=d*c;
+    aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));d=1+aa*d;if(Math.abs(d)<FPMIN)d=FPMIN;
+    c=1+aa/c;if(Math.abs(c)<FPMIN)c=FPMIN;d=1/d;const del=d*c;h*=del;
+    if(Math.abs(del-1)<3e-7)break;}
+  return h;
+}
+function betai(a,b,x){ // função beta incompleta regularizada
+  if(x<=0)return 0;if(x>=1)return 1;
+  const bt=Math.exp(lgamma(a+b)-lgamma(a)-lgamma(b)+a*Math.log(x)+b*Math.log(1-x));
+  return x<(a+1)/(a+b+2)?bt*betacf(a,b,x)/a:1-bt*betacf(b,a,1-x)/b;
+}
+function pairedT(a,b){ // teste t pareado bicaudal sobre as diferenças a-b
+  const n=a.length;if(n<2)return {t:0,df:0,p:null};
+  const d=a.map((x,i)=>x-b[i]),md=mean(d);
+  const sd=Math.sqrt(d.reduce((s,x)=>s+(x-md)*(x-md),0)/(n-1));
+  if(sd===0)return {t:0,df:n-1,p:1};
+  const t=md/(sd/Math.sqrt(n)),df=n-1;
+  const p=betai(df/2,0.5,df/(df+t*t));
+  return {t,df,p};
+}
+function registerStudy(){
+  const m=BM.results.manual,v=BM.results.voz;if(!(m&&v))return;
+  STUDY.push({caso:CASES[BM.caseIdx].titulo,protocolo:CASES[BM.caseIdx].protocolo,
+    manual:{t:m.timeMs/1000,tp:m.tp,fn:m.fn,fp:m.fp,rec:m.rec,prec:m.prec,f1:m.f1,total:m.total},
+    voz:{t:v.timeMs/1000,tp:v.tp,fn:v.fn,fp:v.fp,rec:v.rec,prec:v.prec,f1:v.f1,total:v.total}});
+  saveStudy();drawStudy();toast("Caso registrado no estudo ("+STUDY.length+")");
+}
+function drawStudy(){
+  const host=document.getElementById("bmStudy");if(!host)return;
+  const cnt=document.getElementById("bmN");if(cnt)cnt.textContent=STUDY.length;
+  if(!STUDY.length){host.innerHTML=`<div class="bm-empty">Nenhum caso registrado ainda. Rode a coleta manual e a por voz de um caso e clique em <b>➕ Registrar no estudo</b>. Repita com vários casos para o sistema tirar médias e rodar o teste estatístico.</div>`;return;}
+  const tm=STUDY.map(r=>r.manual.t),tv=STUDY.map(r=>r.voz.t);
+  const pct=x=>(x*100).toFixed(0)+"%";const s1=x=>x.toFixed(1).replace(".",",");
+  const avg=(sel)=>({t:mean(STUDY.map(r=>r[sel].t)),rec:mean(STUDY.map(r=>r[sel].rec)),prec:mean(STUDY.map(r=>r[sel].prec)),f1:mean(STUDY.map(r=>r[sel].f1))});
+  const M=avg("manual"),V=avg("voz");
+  const tt=pairedT(tm,tv);
+  const dt=M.t?Math.round((1-V.t/M.t)*100):0;const faster=V.t<M.t;
+  const pTxt=tt.p==null?"—":(tt.p<0.001?"< 0,001":tt.p.toFixed(3).replace(".",","));
+  const sig=tt.p!=null&&tt.p<0.05;
+  host.innerHTML=`
+    <table class="cmp">
+      <tr><th>Média (n=${STUDY.length})</th><th>Manual</th><th>Por voz</th></tr>
+      <tr><td>Tempo de coleta</td><td class="num${V.t<=M.t?" best":""}">${s1(M.t)} s</td><td class="num${V.t<M.t?" best":""}">${s1(V.t)} s</td></tr>
+      <tr><td>Sensibilidade</td><td class="num${M.rec>=V.rec?" best":""}">${pct(M.rec)}</td><td class="num${V.rec>M.rec?" best":""}">${pct(V.rec)}</td></tr>
+      <tr><td>Precisão</td><td class="num${M.prec>=V.prec?" best":""}">${pct(M.prec)}</td><td class="num${V.prec>M.prec?" best":""}">${pct(V.prec)}</td></tr>
+      <tr><td>F1</td><td class="num${M.f1>=V.f1?" best":""}">${pct(M.f1)}</td><td class="num${V.f1>M.f1?" best":""}">${pct(V.f1)}</td></tr>
+    </table>
+    <div class="cmp-verdict">Em média, a coleta por voz foi <b>${Math.abs(dt)}% ${faster?"mais rápida":"mais lenta"}</b>.
+      Teste <i>t</i> pareado dos tempos: <b>t(${tt.df}) = ${tt.t.toFixed(2).replace(".",",")}</b>, <b>p = ${pTxt}</b>
+      ${tt.df<1?"— registre ≥ 2 casos para o teste.":sig?"— diferença estatisticamente significativa (p &lt; 0,05).":"— sem significância estatística ainda (p ≥ 0,05)."}</div>
+    <div class="cmp-actions">
+      <button class="tbtn" id="stCsv">⬇ Exportar dados (.csv)</button>
+      <button class="tbtn" id="stClear">🗑 Limpar estudo</button>
+    </div>
+    <div class="cmp-note">Tabela pronta para o artigo. O CSV traz uma linha por método/caso (tempo, acertos, perdidos, extras, sensibilidade, precisão, F1) para reanálise no R/SPSS/Excel.</div>`;
+  const c=document.getElementById("stCsv");if(c)c.onclick=exportStudyCSV;
+  const cl=document.getElementById("stClear");if(cl)cl.onclick=()=>{if(confirm("Apagar todos os "+STUDY.length+" casos registrados no estudo?")){STUDY=[];saveStudy();drawStudy();}};
+}
+function exportStudyCSV(){
+  const head=["caso","protocolo","metodo","tempo_s","corretos","perdidos","extras","sensibilidade","precisao","f1"];
+  const rows=[head.join(",")];
+  const q=s=>/[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
+  STUDY.forEach(r=>{["manual","voz"].forEach(k=>{const d=r[k];
+    rows.push([q(r.caso),q(r.protocolo),k==="voz"?"voz":"manual",
+      d.t.toFixed(2),d.tp,d.fn,d.fp,d.rec.toFixed(3),d.prec.toFixed(3),d.f1.toFixed(3)].join(","));});});
+  downloadFile("estudo_ia_x_manual.csv","﻿"+rows.join("\n"),"text/csv");
+  toast("CSV exportado ("+STUDY.length+" casos)");
 }
 
 function drawUni(f){
