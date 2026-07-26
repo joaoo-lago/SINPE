@@ -772,6 +772,9 @@ function renderAdmin(v){
           <button class="tbtn" id="rename">✎ Renomear</button>
           <button class="tbtn danger" id="del">🗑 Excluir</button>
           <span style="flex:1"></span>
+          <button class="tbtn" id="copyProto">⧉ Texto</button>
+          <button class="tbtn" id="exportAll">⬇ Backup</button>
+          <label class="tbtn" id="importLbl" style="cursor:pointer">⬆ Importar<input id="importFile" type="file" accept="application/json,.json" style="display:none"></label>
           <button class="tbtn" id="expandAll">⤢ Expandir</button>
           <button class="tbtn" id="collapseAll">⤡ Recolher</button>
           <button class="tbtn" id="reset">↺ Restaurar</button>
@@ -786,6 +789,9 @@ function renderAdmin(v){
   document.getElementById("protoSel").onchange=e=>{VIEW=e.target.value==="__master"?TREE:findById(TREE,e.target.value);VIEW.open=true;SELECTED=null;drawTree();drawInsp();};
   document.getElementById("search").oninput=e=>{FILTER=e.target.value.trim().toLowerCase();if(FILTER)walk(VIEW,n=>n.open=true);drawTree();};
   document.getElementById("newProto").onclick=openNewProtocol;
+  document.getElementById("copyProto").onclick=copyProtocolText;
+  document.getElementById("exportAll").onclick=exportAll;
+  document.getElementById("importFile").onchange=e=>{if(e.target.files[0])importJson(e.target.files[0]);e.target.value="";};
   document.getElementById("addChild").onclick=()=>addNode("child");
   document.getElementById("addSib").onclick=()=>addNode("sibling");
   document.getElementById("rename").onclick=()=>{const i=document.getElementById("f_label");if(i){i.focus();i.select();}};
@@ -969,6 +975,65 @@ function buildProtocolFromParsed(parsed,name){
   if(holder.children.length===1){root=holder.children[0];if(name)root.label=name;}
   else{root={id:nid(),label:name||"Protocolo importado",type:"logical",selection:"single",media:false,children:[]};root.children=holder.children;}
   root.open=true;return root;
+}
+
+/* ---------- Exportar / importar / compartilhar ---------- */
+function toNumbered(node,depth,lines){
+  lines=lines||[];depth=depth||1;
+  lines.push(depth+"] "+node.label);
+  (node.children||[]).forEach(c=>toNumbered(c,depth+1,lines));
+  return lines;
+}
+function downloadFile(name,content,type){
+  const blob=new Blob([content],{type:type||"text/plain"});const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},120);
+}
+function exportAll(){
+  let coletas=[];try{coletas=JSON.parse(localStorage.getItem("sinpe_coletas")||"[]");}catch(e){}
+  const data={app:"SINPE",v:1,exported_at:new Date().toISOString(),tree:TREE,coletas:coletas};
+  const stamp=new Date().toISOString().slice(0,10);
+  downloadFile("sinpe-backup-"+stamp+".json",JSON.stringify(data,null,2),"application/json");
+  toast("Backup baixado. Guarde ou envie este arquivo.");
+}
+function regenIds(n){n.id=nid();(n.children||[]).forEach(regenIds);return n;}
+function importJson(file){
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const data=JSON.parse(r.result);const src=data.tree||data;const protos=src.children||[];
+      if(!protos.length){alert("Nenhum protocolo encontrado no arquivo.");return;}
+      let added=0;protos.forEach(p=>{TREE.children.push(regenIds(JSON.parse(JSON.stringify(p))));added++;});
+      if(Array.isArray(data.coletas)&&data.coletas.length){try{const cur=JSON.parse(localStorage.getItem("sinpe_coletas")||"[]");localStorage.setItem("sinpe_coletas",JSON.stringify(cur.concat(data.coletas)));}catch(e){}}
+      saveTree();renderAdmin(document.getElementById("view"));
+      toast("Importado(s) "+added+" protocolo(s) do arquivo.");
+    }catch(e){alert("Arquivo inválido. Selecione um backup .json exportado pelo SINPE.");}
+  };
+  r.readAsText(file);
+}
+function copyProtocolText(){
+  const root=(VIEW&&VIEW!==TREE)?VIEW:TREE;
+  const text=toNumbered(root).join("\n");
+  showTextModal("Protocolo em texto",
+    "Copie e envie para um colega — ele cola em “Novo protocolo → Colar / importar”.",text);
+}
+function showTextModal(title,note,text){
+  const ov=document.createElement("div");ov.className="overlay";
+  ov.innerHTML=`<div class="modal"><div class="modal-head"><h3>${escapeHtml(title)}</h3><button class="x" id="stx">✕</button></div>
+    <div class="modal-body">
+      <div class="fmt" style="margin-top:0">${escapeHtml(note)}</div>
+      <textarea id="sttext" readonly>${escapeHtml(text)}</textarea>
+      <div class="modal-actions"><button class="tbtn" id="stclose">Fechar</button><button class="tbtn pri" id="stcopy">⧉ Copiar</button></div>
+    </div></div>`;
+  document.body.appendChild(ov);
+  const close=()=>ov.remove();
+  ov.querySelector("#stx").onclick=close;ov.querySelector("#stclose").onclick=close;
+  ov.onclick=e=>{if(e.target===ov)close();};
+  const ta=ov.querySelector("#sttext");
+  ov.querySelector("#stcopy").onclick=()=>{ta.select();
+    (navigator.clipboard?navigator.clipboard.writeText(text):Promise.reject())
+      .then(()=>toast("Copiado!")).catch(()=>{try{document.execCommand("copy");toast("Copiado!");}catch(e){toast("Selecione o texto e use Ctrl+C.");}});};
+  setTimeout(()=>{ta.focus();ta.select();},30);
 }
 
 /* ================= RESEARCHER ================= */
