@@ -28,16 +28,6 @@
     --sh-md:0 4px 14px rgba(15,23,42,.07);
     --sh-lg:0 18px 50px rgba(15,23,42,.14);
   }
-  @media (prefers-color-scheme:dark){:root{
-    --bg:#0a0f1c; --surface:#111a2c; --surface-2:#17223a; --surface-3:#1f2c47;
-    --ink:#e9eef8; --muted:#93a2bb; --line:#26324b;
-    --accent:#fb7185; --accent-2:#f43f5e; --accent-ink:#fda4af; --accent-soft:#3a1723;
-    --info:#818cf8; --info-soft:#1f2542;
-    --good:#34d399; --warn:#fbbf24; --pending:#64748b;
-    --sh-sm:0 1px 2px rgba(0,0,0,.4); --sh-md:0 6px 18px rgba(0,0,0,.4); --sh-lg:0 20px 55px rgba(0,0,0,.55);
-  }}
-  :root[data-theme="light"]{--bg:#f6f8fc;--surface:#fff;--surface-2:#f1f4fa;--surface-3:#e7edf6;--ink:#0f172a;--muted:#64748b;--line:#e4e9f2;--accent:#e11d48;--accent-2:#f43f5e;--accent-ink:#be123c;--accent-soft:#ffe4ea;--info:#6366f1;--info-soft:#ecedff;--good:#0d9f6e;--warn:#e08a0b;--pending:#94a3b8;--sh-sm:0 1px 2px rgba(15,23,42,.05),0 1px 3px rgba(15,23,42,.04);--sh-md:0 4px 14px rgba(15,23,42,.07);--sh-lg:0 18px 50px rgba(15,23,42,.14);}
-  :root[data-theme="dark"]{--bg:#0a0f1c;--surface:#111a2c;--surface-2:#17223a;--surface-3:#1f2c47;--ink:#e9eef8;--muted:#93a2bb;--line:#26324b;--accent:#fb7185;--accent-2:#f43f5e;--accent-ink:#fda4af;--accent-soft:#3a1723;--info:#818cf8;--info-soft:#1f2542;--good:#34d399;--warn:#fbbf24;--pending:#64748b;--sh-sm:0 1px 2px rgba(0,0,0,.4);--sh-md:0 6px 18px rgba(0,0,0,.4);--sh-lg:0 20px 55px rgba(0,0,0,.55);}
 
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -345,7 +335,6 @@
     <div class="title">SINPE 2.0 <span id="ctx"></span></div>
     <div class="spacer"></div>
     <span class="rolechip" id="rolechip"></span>
-    <button class="ghost" id="themeBtn">◐ Tema</button>
     <button class="ghost" id="switchBtn">Trocar perfil</button>
   </div>
   <main><div class="page" id="view"></div></main>
@@ -731,9 +720,6 @@ document.getElementById("roles").addEventListener("click",e=>{const b=e.target.c
 document.getElementById("enter").onclick=()=>{document.getElementById("login").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");document.getElementById("rolechip").textContent=ROLE_LABEL[ROLE];render();};
 document.getElementById("switchBtn").onclick=()=>{document.getElementById("app").classList.add("hidden");document.getElementById("login").classList.remove("hidden");};
-document.getElementById("themeBtn").onclick=()=>{const c=document.documentElement.getAttribute("data-theme");
-  const n=c==="dark"?"light":c==="light"?"dark":(matchMedia("(prefers-color-scheme: dark)").matches?"light":"dark");
-  document.documentElement.setAttribute("data-theme",n);};
 
 function render(){
   document.getElementById("ctx").textContent={admin:"· Protocolos",researcher:"· Coleta e Análise",dev:"· Manutenção"}[ROLE];
