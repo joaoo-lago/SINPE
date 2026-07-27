@@ -232,6 +232,8 @@
   @keyframes pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 55%,transparent)}70%{box-shadow:0 0 0 8px transparent}}
   .vtext{font-size:14.5px;line-height:1.6;min-height:46px;color:var(--ink);font-weight:500}
   .vnote{font-size:11.5px;color:var(--muted);margin-top:9px;line-height:1.5}
+  .vneg{font-size:12px;margin-top:8px;line-height:1.6;color:var(--muted)}
+  .vneg b{color:var(--accent-ink)}
   .chk{width:20px;height:20px;border-radius:6px;border:2px solid var(--line);flex:none;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:800;transition:background .12s,border-color .12s}
   .trow.picked .chk{background:var(--accent);border-color:var(--accent)}
   .trow.auto{background:color-mix(in srgb,var(--warn) 13%,transparent)}
@@ -587,6 +589,9 @@ function buildSeed(){
     const p=stack[depth-1]; if(p){p.children.push(node);stack[depth]=node;if(single)singleParents.add(p.id);}
   });
   walk(root,n=>{if(singleParents.has(n.id))n.selection="single";});
+  // resultados de exame (só Alterado/Normal) são mutuamente exclusivos → seleção única
+  walk(root,n=>{const k=(n.children||[]).map(c=>c.label);
+    if(k.length&&k.every(x=>x==="Alterado"||x==="Normal")&&k.includes("Alterado")&&k.includes("Normal"))n.selection="single";});
   return root;
 }
 function loadTree(){try{const s=localStorage.getItem("sinpe_tree_v3");if(s){const t=JSON.parse(s);fixIds(t);return t;}}catch(e){}return buildSeed();}
@@ -1065,9 +1070,9 @@ function renderAnalysisUI(host){
 }
 
 /* -------- Nova coleta (manual + voz) -------- */
-const COL={patient:{nome:"",sexo:"Masculino",raca:"Branca"},protocolId:null,selected:new Set(),auto:new Set(),usedVoice:false};
+const COL={patient:{nome:"",sexo:"Masculino",raca:"Branca"},protocolId:null,selected:new Set(),auto:new Set(),usedVoice:false,negated:new Set()};
 let REC=null;
-const SAMPLE="O paciente se queixa de falta de ar e de uma dor no peito em aperto. Teve um desmaio, está com suor frio e enjoo. É fumante, tem pressão alta e diabetes, e faz uso de aspirina.";
+const SAMPLE="O paciente refere dor no peito em aperto e falta de ar, com suor frio. Nega palpitação e não teve desmaio. É fumante, tem pressão alta e diabetes, e faz uso de aspirina.";
 /* Sinônimos e termos leigos → item clínico do protocolo (equivalência).
    No sistema real esta etapa é feita por um LLM, que entende linguagem natural
    aberta; aqui um dicionário demonstra o conceito na interface. */
@@ -1127,7 +1132,7 @@ const SYNS=[
   {t:["engordei","ganhei peso","perdi peso","emagreci","emagrecendo"],alvo:["Ganho ou perda de peso"]},
   /* ---------- Fatores de risco ---------- */
   {t:["pressão alta","pressao alta","pressão elevada","hipertenso","hipertensa","sofro de pressão","tenho pressão","pressão descontrolada"],alvo:["Hipertensão arterial","Pressão alta"]},
-  {t:["açúcar alto","acucar alto","glicose alta","diabético","diabetico","diabética","diabete","açúcar no sangue","tenho diabetes"],alvo:["Diabetes"]},
+  {t:["açúcar alto","acucar alto","glicose alta","diabético","diabetico","diabética","diabete","diabetes","açúcar no sangue","tenho diabetes"],alvo:["Diabetes"]},
   {t:["fumante","fuma","fumo","cigarro","tabagista","dependente de cigarro","ex fumante","uso de cigarro","fumo há anos","fumo muito"],alvo:["Tabagismo"]},
   {t:["obeso","obesa","acima do peso","gordo","gorda","sobrepeso","excesso de peso"],alvo:["Obesidade"]},
   {t:["colesterol alto","gordura no sangue","dislipidemia","colesterol elevado","colesterol ruim alto","ldl alto"],alvo:["Dislipidemia","LDL acima da meta"]},
@@ -1229,6 +1234,7 @@ function renderColeta(host){
           <div class="vhead"><span class="rec-dot"></span> Transcrição da consulta</div>
           <div id="vtext" class="vtext">…</div>
           <div id="vnote" class="vnote"></div>
+          <div id="vneg" class="vneg"></div>
         </div>
         <div class="tree" id="colTree"></div>
       </div>
@@ -1238,13 +1244,13 @@ function renderColeta(host){
         <div style="padding:0 16px 16px"><button class="enter" id="finalize">✓ Finalizar coleta</button></div>
       </div>
     </div>`;
-  document.getElementById("colProto").onchange=e=>{COL.protocolId=e.target.value;COL.selected.clear();COL.auto.clear();COL.usedVoice=false;protoNode().open=true;drawColTree();drawSel();};
+  document.getElementById("colProto").onchange=e=>{COL.protocolId=e.target.value;COL.selected.clear();COL.auto.clear();COL.negated.clear();COL.usedVoice=false;protoNode().open=true;drawColTree();drawSel();drawNeg();};
   document.getElementById("pNome").oninput=e=>COL.patient.nome=e.target.value;
   document.getElementById("pSexo").onchange=e=>COL.patient.sexo=e.target.value;
   document.getElementById("pRaca").onchange=e=>COL.patient.raca=e.target.value;
   document.getElementById("micBtn").onclick=()=>{REC?stopVoice():startVoice();};
   document.getElementById("simBtn").onclick=simulateVoice;
-  document.getElementById("clearCol").onclick=()=>{COL.selected.clear();COL.auto.clear();COL.usedVoice=false;setVText("…");document.getElementById("voicePanel").classList.add("hidden");drawColTree();drawSel();};
+  document.getElementById("clearCol").onclick=()=>{COL.selected.clear();COL.auto.clear();COL.negated.clear();COL.usedVoice=false;setVText("…");document.getElementById("voicePanel").classList.add("hidden");drawColTree();drawSel();drawNeg();};
   document.getElementById("finalize").onclick=finalizeColeta;
   protoNode().open=true;drawColTree();drawSel();
 }
@@ -1282,19 +1288,42 @@ function drawSel(){
 function normv(s){return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");}
 /* casa a expressão como palavra inteira (evita "fa" dentro de "falta") */
 function hit(t,phrase){const e=phrase.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");return new RegExp("(^|[^0-9a-z])"+e+"([^0-9a-z]|$)").test(t);}
+/* Detecção de negação: quando o médico pergunta tudo, precisamos saber se o
+   paciente TEM ou NÃO tem o achado. Uma pista de negação (nega, não tem, sem,
+   ausência de…) logo antes do termo, na mesma oração, marca-o como negado.
+   No sistema real isso é feito por um LLM que lê o diálogo já separado por
+   locutor (diarização); aqui é uma camada de regras que demonstra o conceito. */
+const NEG=/\b(nao|nega|negou|nego|negam|negad[oa]s?|sem|ausencia|ausente|nenhum|nenhuma|nem|descartad[oa]|negativ[oa]|nunca|inexistente)\b/;
+function clauseBefore(t,idx){const c=t.slice(Math.max(0,idx-26),idx);const parts=c.split(/[.;,:!?]| mas | porem | contudo | entretanto | todavia | embora /);return parts[parts.length-1];}
+function presence(t,phrase){ // 'present' | 'negated' | 'absent'
+  const e=phrase.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  const re=new RegExp("(^|[^0-9a-z])"+e+"([^0-9a-z]|$)","g");
+  let m,found=false,affirmed=false;
+  while((m=re.exec(t))){found=true;const idx=m.index+m[1].length;if(!NEG.test(clauseBefore(t,idx)))affirmed=true;}
+  return !found?"absent":affirmed?"present":"negated";
+}
+function scanTranscript(t,root){ // devolve conjuntos de rótulos (normv) presentes e negados
+  const present=new Set(),negated=new Set();
+  const add=(alvos,pr)=>alvos.forEach(a=>{const na=normv(a);if(pr==="present")present.add(na);else if(pr==="negated")negated.add(na);});
+  SYNS.forEach(s=>s.t.forEach(term=>{const pr=presence(t,normv(term));if(pr!=="absent")add(s.alvo,pr);}));
+  walk(root,n=>{const nn=normv(n.label);if(nn.length>=5){const pr=presence(t,nn);if(pr!=="absent")add([n.label],pr);}});
+  present.forEach(x=>negated.delete(x)); // afirmação em algum ponto prevalece
+  return {present,negated};
+}
 function applyTranscript(text){
   const t=normv(text);
-  const wanted=new Set();
-  // 1) termos leigos / sinônimos -> um ou mais itens clínicos equivalentes
-  SYNS.forEach(s=>{if(s.t.some(term=>hit(t,normv(term))))s.alvo.forEach(a=>wanted.add(normv(a)));});
-  // 2) termos que já batem com o próprio rótulo do protocolo
-  walk(protoNode(),n=>{const nn=normv(n.label);if(nn.length>=5&&hit(t,nn))wanted.add(nn);});
-  // marca os nós correspondentes dentro do protocolo selecionado (nunca as seções/cabeçalhos)
-  let marked=0;const secIds=new Set((TREE.children||[]).map(c=>c.id));
-  walk(protoNode(),n=>{if(wanted.has(normv(n.label))&&!secIds.has(n.id)&&!COL.selected.has(n.id)){COL.selected.add(n.id);COL.auto.add(n.id);marked++;let p=parentOf(n);while(p){p.open=true;p=parentOf(p);}}});
-  if(marked>0)COL.usedVoice=true;
-  protoNode().open=true;drawColTree();drawSel();
+  const {present,negated}=scanTranscript(t,protoNode());
+  const secIds=new Set((TREE.children||[]).map(c=>c.id));
+  let marked=0;COL.negated=new Set();
+  walk(protoNode(),n=>{const nn=normv(n.label);if(secIds.has(n.id))return;
+    if(present.has(nn)){if(!COL.selected.has(n.id)){COL.selected.add(n.id);COL.auto.add(n.id);marked++;let p=parentOf(n);while(p){p.open=true;p=parentOf(p);}}}
+    else if(negated.has(nn))COL.negated.add(n.label);
+  });
+  if(present.size||negated.size)COL.usedVoice=true;
+  protoNode().open=true;drawColTree();drawSel();drawNeg();
 }
+function drawNeg(){const el=document.getElementById("vneg");if(!el)return;const arr=[...(COL.negated||[])];
+  el.innerHTML=arr.length?`<b>🚫 Negado pelo paciente:</b> ${arr.map(escapeHtml).join(", ")}`:"";}
 function setVText(t){const el=document.getElementById("vtext");if(el)el.textContent=t||"…";}
 function vnote(m){const el=document.getElementById("vnote");if(el)el.textContent=m||"";}
 function voiceUI(on){const p=document.getElementById("voicePanel");if(p){p.classList.remove("hidden");p.classList.toggle("live",on);}const b=document.getElementById("micBtn");if(b)b.textContent=on?"⏹ Parar":"🎙️ Coletar por voz";}
@@ -1326,7 +1355,7 @@ function finalizeColeta(){
     itens:[...COL.selected].map(id=>findById(TREE,id)?.label).filter(Boolean)};
   try{const a=JSON.parse(localStorage.getItem("sinpe_coletas")||"[]");a.push(rec);localStorage.setItem("sinpe_coletas",JSON.stringify(a));}catch(e){}
   toast(`Coleta ${modo==="voz"?"por voz":"manual"} finalizada: ${rec.itens.length} itens de ${rec.paciente}.`);
-  COL.selected.clear();COL.auto.clear();COL.usedVoice=false;drawColTree();drawSel();setVText("…");
+  COL.selected.clear();COL.auto.clear();COL.negated.clear();COL.usedVoice=false;drawColTree();drawSel();drawNeg();setVText("…");
 }
 function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),3400);}
 
@@ -1353,12 +1382,10 @@ const CASES=[
 ];
 const BM={caseIdx:0,active:null,sel:new Set(),auto:new Set(),t0:0,tick:null,results:{manual:null,voz:null}};
 function bmProto(){return TREE;} // coleta sobre o Protocolo Mestre completo
-function bmMark(text){ // marca itens no protocolo do caso a partir de texto (sinônimos + rótulos)
-  const t=normv(text),wanted=new Set();
-  SYNS.forEach(s=>{if(s.t.some(term=>hit(t,normv(term))))s.alvo.forEach(a=>wanted.add(normv(a)));});
-  const root=bmProto();const secIds=new Set((TREE.children||[]).map(c=>c.id));
-  walk(root,n=>{const nn=normv(n.label);if(nn.length>=5&&hit(t,nn))wanted.add(nn);});
-  walk(root,n=>{if(wanted.has(normv(n.label))&&!secIds.has(n.id)){BM.sel.add(n.id);BM.auto.add(n.id);let p=parentOf(n);while(p){p.open=true;p=parentOf(p);}}});
+function bmMark(text){ // marca itens no protocolo do caso a partir de texto (sinônimos + rótulos, com negação)
+  const t=normv(text);const root=bmProto();const secIds=new Set((TREE.children||[]).map(c=>c.id));
+  const {present}=scanTranscript(t,root);
+  walk(root,n=>{if(present.has(normv(n.label))&&!secIds.has(n.id)){BM.sel.add(n.id);BM.auto.add(n.id);let p=parentOf(n);while(p){p.open=true;p=parentOf(p);}}});
 }
 function renderBench(host){
   const c=CASES[BM.caseIdx];
