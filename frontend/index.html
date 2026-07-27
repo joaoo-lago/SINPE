@@ -1149,7 +1149,7 @@ const SYNS=[
   {t:["inchaço","inchaco","inchado","inchada","inchação","retenção de líquido","retencao de liquido","estou inchado"],alvo:["Edema"]},
   {t:["pernas inchadas","perna inchada","pé inchado","pe inchado","pés inchados","pes inchados","tornozelo inchado","tornozelos inchados","inchaço nas pernas","pés e tornozelos inchados"],alvo:["Edema","Edema de membros inferiores"]},
   {t:["inchado todo","corpo todo inchado","inchaço no corpo todo"],alvo:["Anasarca"]},
-  {t:["barriga inchada","barriga d agua","barriga d'agua","barriga cheia de água","abdome inchado","barriga estufada"],alvo:["Ascite"]},
+  {t:["barriga inchada","barriga inchou","barriga incha","barriga também incha","barriga d agua","barriga d'agua","barriga cheia de água","abdome inchado","barriga estufada"],alvo:["Ascite"]},
   {t:["fígado grande","figado grande","fígado aumentado","dor no fígado","dor no figado"],alvo:["Hepatomegalia"]},
   {t:["acordo para urinar","acorda para urinar","acorda várias vezes para urinar","levanta para urinar","levanta à noite para urinar","levanto de noite para urinar","levanto para fazer xixi","urino muito de noite","xixi à noite","xixi a noite","muito xixi de noite"],alvo:["Noctúria"]},
   {t:["dor na barriga","dor de barriga","dor abdominal"],alvo:["Dor abdominal"]},
@@ -1234,6 +1234,73 @@ const SYNS=[
   {t:["melhorou um pouco","melhora parcial","um pouco melhor"],alvo:["Melhora parcial"]},
   {t:["na mesma","sem mudança","inalterado","continua igual"],alvo:["Inalterado"]},
   {t:["piorou","está pior","piora"],alvo:["Piora"]},
+  /* ---------- Achados do exame físico (o médico dita) ---------- */
+  {t:["sudoreico","sudoreica","suado","suada","suando muito","perfil sudoreico"],alvo:["Sudorese"]},
+  {t:["taquicardico","taquicardica","taquicárdico","taquicárdica"],alvo:["Taquicardia"]},
+  {t:["bradicardico","bradicardica","bradicárdico"],alvo:["Bradicardia"]},
+  {t:["extremidades frias","maos e pes frios","mãos e pés frios","pes frios","maos frias"],alvo:["Extremidades frias"]},
+  {t:["pulso filiforme","pulso fino","pulso fraco"],alvo:["Pulso filiforme"]},
+  {t:["estase jugular","turgencia jugular","turgência jugular","jugular ingurgitada","pressao jugular elevada","estase de jugular","jugular estasiada"],alvo:["Pressão jugular elevada"]},
+  {t:["ictus desviado","ictus deslocado","ictus cordis desviado","ictus cordis deslocado a esquerda","ictus para a esquerda","ictus cordis"],alvo:["Ictus cordis deslocado à esquerda"]},
+  {t:["terceira bulha","b3","galope","ritmo de galope","galope ventricular"],alvo:["Terceira bulha"]},
+  {t:["quarta bulha","b4"],alvo:["Quarta bulha"]},
+  {t:["bulhas abafadas"],alvo:["Bulhas abafadas"]},
+  {t:["bulhas hipofoneticas","bulhas hipofonéticas"],alvo:["Bulhas hipofonéticas"]},
+  {t:["atrito pericardico","atritos pericardicos","atrito pericárdico"],alvo:["Atritos pericárdicos"]},
+  {t:["sopro sistolico","sopro sistólico","sopros sistolicos"],alvo:["Sopros sistólico"]},
+  {t:["sopro regurgitante","sopro de regurgitacao mitral","sopro mitral","sopro em foco mitral","sopro regurgitante mitral","regurgitacao tricuspide"],alvo:["Sopro regurgitante mitral ou tricúspide"]},
+  {t:["estertores","estertores em bases","estertores crepitantes","crepitacoes","crepitações","crepitantes"],alvo:["Estertores"]},
+  {t:["sibilos","sibilos difusos","sibilancia","sibilância","chiado difuso"],alvo:["Sibilos difusos"]},
+  {t:["respiracao de cheyne stokes","cheyne stokes","cheyne-stokes"],alvo:["Respiração de Cheyne-Stokes"]},
+  {t:["frequencia respiratoria elevada","taquipneico","taquipneica","respiracao acelerada no exame"],alvo:["Taquipneia","Frequência respiratória elevada"]},
+  {t:["hepatomegalia","figado palpavel","fígado palpável","figado aumentado a palpacao"],alvo:["Hepatomegalia"]},
+  {t:["ascite ao exame","abdome ascitico","abdome com ascite","semiologia de ascite"],alvo:["Ascite"]},
+  {t:["edema de membros inferiores","edema em membros inferiores","edema de mmii","edema nos pes e tornozelos"],alvo:["Edema de membros inferiores","Edema"]},
+  /* ---------- ECG e exames complementares ---------- */
+  {t:["supra de st","supradesnivelamento de st","supradesnivelamento do st","supra desnivelamento de st","elevacao do segmento st","elevação do segmento st"],alvo:["Supradesnivelamento de ST","Elevação no segmento ST"]},
+  {t:["infra de st","infradesnivelamento de st","depressao do segmento st","depressão do segmento st","depressao de st"],alvo:["Depressão no segmento ST"]},
+  {t:["onda t invertida","inversao de onda t","inversão de onda t","onda t negativa"],alvo:["Inversão de onda T"]},
+  {t:["bloqueio de ramo","bloqueio de ramo esquerdo","bloqueio de ramo direito"],alvo:["Bloqueio de ramo"]},
+  {t:["cintilografia miocardica","cintilografia do miocardio","cintilografia"],alvo:["Cintilografia miocárdica"]},
+  {t:["ressonancia magnetica","ressonância magnética","ressonancia cardiaca","ressonância do coração","ressonancia do coracao"],alvo:["Ressonância magnética"]},
+  {t:["perfil lipidico","perfil lipídico","exame de colesterol"],alvo:["Perfil lipídico"]},
+  {t:["ecocardiograma de estresse","eco de estresse","eco sob estresse"],alvo:["Ecocardiograma de estresse"]},
+  /* ---------- Estágios da hipertensão ---------- */
+  {t:["pre hipertenso","pré-hipertenso","pre-hipertenso","pressao limitrofe","pressão limítrofe"],alvo:["Pré-hipertenso (130-139 / 85-89 mmHg)"]},
+  {t:["estagio 1","estágio 1","ha estagio 1","hipertensao estagio 1"],alvo:["Estágio 1 (140-159 / 90-99 mmHg)"]},
+  {t:["estagio 2","estágio 2","ha estagio 2","hipertensao estagio 2"],alvo:["Estágio 2 (160-179 / 100-109 mmHg)"]},
+  {t:["estagio 3","estágio 3","ha estagio 3","hipertensao estagio 3","crise hipertensiva"],alvo:["Estágio 3 (≥180/≥110 mmHg)"]},
+  /* ---------- Tratamento / procedimentos ---------- */
+  {t:["revascularizacao","revascularização","angioplastia","colocou stent","poe stent","stent","ponte de safena","cirurgia de revascularizacao"],alvo:["Revascularização"]},
+  {t:["implante de marcapasso","colocou marcapasso","marcapasso definitivo","marcapasso","implantar marcapasso"],alvo:["Implante de marcapasso"]},
+  {t:["cardioversao eletrica","cardioversão elétrica","choque eletrico","choque elétrico","cardioverter"],alvo:["Cardioversão elétrica"]},
+  {t:["mudancas no estilo de vida","mudança no estilo de vida","medidas nao farmacologicas","dieta e exercicio","mudar o estilo de vida"],alvo:["Mudanças no estilo de vida"]},
+  {t:["noac","noacs","doac","anticoagulante oral direto","rivaroxabana","apixabana","dabigatrana","edoxabana"],alvo:["NOACs"]},
+  {t:["adenosina"],alvo:["Adenosina"]},{t:["sotalol"],alvo:["Sotalol"]},
+  {t:["amilorida"],alvo:["Amilorida"]},{t:["indapamida"],alvo:["Indapamida"]},{t:["triantereno"],alvo:["Triantereno"]},
+  {t:["alfametildopa","metildopa"],alvo:["Alfametildopa"]},{t:["doxazosina"],alvo:["Doxazosina"]},{t:["prazosina"],alvo:["Prazosina"]},{t:["terazosina"],alvo:["Terazosina"]},
+  {t:["minoxidil"],alvo:["Minoxidil"]},{t:["nitroprussiato","nitroprussiato de sodio"],alvo:["Nitroprussiato de sódio"]},
+  {t:["dapagliflozina","forxiga"],alvo:["Dapagliflozina"]},{t:["empagliflozina","jardiance"],alvo:["Empagliflozina"]},{t:["canagliflozina"],alvo:["Canagliflozina"]},
+  /* ---------- Diagnósticos ---------- */
+  {t:["fibrilacao atrial","fibrilação atrial","fa de alta resposta"],alvo:["Fibrilação atrial"]},
+  {t:["doenca arterial coronariana","doença arterial coronariana","coronariopatia","doenca coronariana"],alvo:["Doença Arterial Coronariana"]},
+  {t:["insuficiencia cardiaca descompensada","ic descompensada","insuficiencia cardiaca congestiva"],alvo:["Insuficiência Cardíaca"]},
+  {t:["hipertensao arterial sistemica","hipertensão arterial sistêmica","has"],alvo:["Hipertensão arterial sistêmica"]},
+  {t:["infarto agudo do miocardio","infarto agudo do miocárdio"],alvo:["Infarto agudo do miocárdio"]},
+  {t:["arritmia cardiaca","distúrbio do ritmo","disturbio do ritmo","taquiarritmia"],alvo:["Arritmias"]},
+  {t:["insuficiencia cardiaca esquerda","ic esquerda"],alvo:["Esquerda"]},
+  {t:["insuficiencia cardiaca direita","ic direita"],alvo:["Direita"]},
+  {t:["insuficiencia biventricular","ic biventricular"],alvo:["Biventricular"]},
+  /* ---------- História familiar ---------- */
+  {t:["pai infartou","mae infartou","mãe infartou","infarto na familia","infarto na família","historia familiar de infarto","parente infartou","pai teve infarto","irmao infartou"],alvo:["IAM em familiares < 60 e 65 anos"]},
+  {t:["avc na familia","derrame na familia","ave na familia"],alvo:["AVE"]},
+  /* ---------- Sintomas / variações ---------- */
+  {t:["desmaiar","quase desmaiei","escureceu tudo","apaguei de vez","chegou a desmaiar"],alvo:["Síncope"]},
+  {t:["acorda sufocado","acorda sem ar","acorda de madrugada sem ar","desperta sufocado","sufoca a noite","acorda afogado"],alvo:["Dispneia paroxística noturna"]},
+  {t:["coração dispara","coracao dispara","coração disparando","batendo rápido","batendo muito rápido","batendo muito forte","coração acelerado do nada"],alvo:["Palpitação","Taquicardia"]},
+  {t:["melhora quando paro","melhora ao parar","melhora com o repouso","alivia com o repouso","dor aos esforços","dor ao esforço que melhora"],alvo:["Angina estável","Estável"]},
+  {t:["sou parada","sou parado","bem parada","bem parado","não faço exercício","nao faco exercicio","não me exercito","nao me exercito","que nada de exercicio"],alvo:["Sedentarismo"]},
+  {t:["canso de andar","canso ao andar","canso quando caminho","canso para caminhar","canso subindo escada"],alvo:["Fadiga"]},
 ];
 function protoNode(){return findById(TREE,COL.protocolId)||TREE;}
 function renderColeta(host){
@@ -1337,11 +1404,14 @@ function presence(t,phrase){ // 'present' | 'negated' | 'absent'
   return !found?"absent":affirmed?"present":"negated";
 }
 /* Pistas de resposta afirmativa do paciente a uma pergunta do médico */
-const AFF=/\b(sim|aham|uhum|isso|isso mesmo|exato|exatamente|positivo|tenho|tem sim|com certeza|correto|afirmativo|claro|bastante|demais)\b/;
+const AFF=/\b(sim|aham|uhum|isso|isso mesmo|exato|exatamente|positivo|tenho|tem sim|com certeza|correto|afirmativo|claro|bastante|demais|estou|sinto|senti|tive|tomo|uso|muita|muito)\b/;
+/* rótulos genéricos: só marcam via sinônimo/contexto, nunca por substring solta
+   (evita "à esquerda" marcar "Esquerda", "cirurgia" marcar "Cirurgia" etc.) */
+const DIRECT_DENY=new Set(["esquerda","direita","biventricular","normal","alterado","cirurgia","piora","estavel","instavel","persistentes","transitorios","inalterado"]);
 function scanSegment(seg,root,base,present,negated){ // base: 'present'|'negated'; negação local (sem/nega) refina
   const put=(alvos,pr)=>{const eff=pr==="negated"?"negated":base;alvos.forEach(a=>{const na=normv(a);eff==="present"?present.add(na):negated.add(na);});};
   SYNS.forEach(s=>s.t.forEach(term=>{const pr=presence(seg,normv(term));if(pr!=="absent")put(s.alvo,pr);}));
-  walk(root,n=>{const nn=normv(n.label);if(nn.length>=5){const pr=presence(seg,nn);if(pr!=="absent")put([n.label],pr);}});
+  walk(root,n=>{const nn=normv(n.label);if(nn.length>=5&&!DIRECT_DENY.has(nn)){const pr=presence(seg,nn);if(pr!=="absent")put([n.label],pr);}});
 }
 function scanTranscript(t,root){ // consciente de diálogo: liga a PERGUNTA do médico à RESPOSTA (sim/não) do paciente
   const present=new Set(),negated=new Set();
@@ -1364,7 +1434,7 @@ function applyTranscript(text){
   let marked=0;COL.negated=new Set();
   walk(protoNode(),n=>{const nn=normv(n.label);if(secIds.has(n.id))return;
     if(present.has(nn)){if(!COL.selected.has(n.id)){COL.selected.add(n.id);COL.auto.add(n.id);marked++;let p=parentOf(n);while(p){p.open=true;p=parentOf(p);}}}
-    else if(negated.has(nn))COL.negated.add(n.label);
+    else if(negated.has(nn)){COL.negated.add(n.label);if(COL.auto.has(n.id)){COL.selected.delete(n.id);COL.auto.delete(n.id);}} // desmarca o que a voz tinha posto e agora foi negado
   });
   if(present.size||negated.size)COL.usedVoice=true;
   protoNode().open=true;drawColTree();drawSel();drawNeg();
@@ -1409,29 +1479,30 @@ function toast(m){const t=document.createElement("div");t.className="toast";t.te
 /* ================= COMPARATIVO IA × MANUAL (metodologia do PIBIC) ================= */
 const CASES=[
   {protocolo:"Infarto agudo do miocárdio",titulo:"Homem, 62 anos — dor torácica",
-   vinheta:"Homem de 62 anos, fumante, hipertenso e diabético. Chegou com dor no peito e falta de ar, com muito suor frio. No hospital recebeu aspirina.",
-   gabarito:["Tabagismo","Hipertensão arterial","Diabetes","Angina","Dispneia","Sudorese","Ácido acetilsalicílico"]},
+   vinheta:"Médico: Seu João, o que trouxe o senhor hoje? Paciente: Uma dor no peito muito forte, em aperto, começou faz quarenta minutos e não passa mesmo parado. Médico: Está com falta de ar? Paciente: Estou, e com muito suor frio. Médico: Chegou a desmaiar? Paciente: Não desmaiei. Médico: O senhor fuma? Paciente: Fumo há trinta anos. Médico: Tem pressão alta e diabetes? Paciente: Tenho as duas, e o colesterol alto. Médico: Alguém da família infartou cedo? Paciente: Meu pai infartou aos cinquenta. Médico: Ao exame, paciente sudoreico, com extremidades frias e taquicárdico; à ausculta, quarta bulha. No eletrocardiograma, supradesnivelamento de ST. Levado à cineangiocoronariografia e à revascularização. Prescrevo ácido acetilsalicílico, clopidogrel e metoprolol. Diagnóstico: infarto agudo do miocárdio.",
+   gabarito:["Tabagismo","Hipertensão arterial","Diabetes","LDL acima da meta","IAM em familiares < 60 e 65 anos","Angina","Dispneia","Sudorese","Extremidades frias","Taquicardia","Quarta bulha","Eletrocardiograma","Supradesnivelamento de ST","Elevação no segmento ST","Cineangiocoronariografia","Revascularização","Ácido acetilsalicílico","Clopidogrel","Metoprolol","Infarto agudo do miocárdio"]},
   {protocolo:"Hipertensão arterial sistêmica",titulo:"Mulher, 55 anos — hipertensão",
-   vinheta:"Mulher de 55 anos, obesa e sedentária, que come muito sal. Faz uso de losartana e hidroclorotiazida.",
-   gabarito:["Obesidade","Sedentarismo","Alimentação rica em sal","Losartana","Hidroclorotiazida"]},
+   vinheta:"Médico: Dona Maria, o que a traz? Paciente: Tenho pressão alta há anos e ela vive descontrolada. Médico: Sente dor de cabeça ou tontura? Paciente: Sinto tontura de vez em quando. Médico: A senhora usa muito sal na comida? Paciente: Uso bastante. Médico: A senhora se exercita? Paciente: Que nada, sou bem parada. Médico: Há hipertensão na família? Paciente: Minha mãe é hipertensa. Médico: Ao exame, pressão em estágio 2, com ictus cordis deslocado à esquerda e quarta bulha. Eletrocardiograma com sinais de sobrecarga; solicito ecocardiograma. Oriento mudanças no estilo de vida e prescrevo hidroclorotiazida e losartana. Diagnóstico: hipertensão arterial sistêmica.",
+   gabarito:["Hipertensão arterial","Estágio 2 (160-179 / 100-109 mmHg)","Tontura","Alimentação rica em sal","Sedentarismo","Ictus cordis deslocado à esquerda","Quarta bulha","Eletrocardiograma","Ecocardiograma","Mudanças no estilo de vida","Hidroclorotiazida","Losartana","Hipertensão arterial sistêmica"]},
   {protocolo:"Insuficiência Cardíaca",titulo:"Idoso — insuficiência cardíaca",
-   vinheta:"Idoso com muito cansaço, falta de ar ao deitar, pernas inchadas e barriga inchada, e que acorda várias vezes para urinar. Faz uso de furosemida.",
-   gabarito:["Idade avançada","Fadiga","Dispneia","Ortopneia","Edema","Edema de membros inferiores","Ascite","Noctúria","Furosemida"]},
-  {protocolo:"Arritmias",titulo:"Paciente — palpitações",
-   vinheta:"Paciente relata coração acelerado, muita tontura e um episódio de desmaio. Fez eletrocardiograma e está em uso de amiodarona.",
-   gabarito:["Palpitação","Taquicardia","Tontura","Síncope","Eletrocardiograma","Amiodarona"]},
+   vinheta:"Médico: Seu Antônio, como tem passado? Paciente: Cansado demais, doutor, canso de andar um pouco. Médico: Sente falta de ar ao deitar? Paciente: Sim, durmo com dois travesseiros. Médico: Acorda sufocado à noite? Paciente: Acordo, sim. Médico: As pernas incham? Paciente: Incham muito, e a barriga inchou também. Médico: Levanta à noite para urinar? Paciente: Levanto, sim, umas três vezes. Médico: Ao exame, estase jugular, estertores nas bases, terceira bulha, hepatomegalia e edema de membros inferiores. O ecocardiograma mostrou fração de ejeção reduzida. Prescrevo furosemida, carvedilol e dapagliflozina. Diagnóstico: insuficiência cardíaca descompensada.",
+   gabarito:["Fadiga","Dispneia","Ortopneia","Dispneia paroxística noturna","Edema","Edema de membros inferiores","Ascite","Noctúria","Pressão jugular elevada","Estertores","Terceira bulha","Hepatomegalia","Ecocardiograma","Furosemida","Carvedilol","Dapagliflozina","Insuficiência Cardíaca"]},
+  {protocolo:"Arritmias",titulo:"Jovem — palpitações súbitas",
+   vinheta:"Médico: O que você sente? Paciente: Tenho palpitação, meu coração dispara do nada e fica batendo muito rápido. Médico: Sente tontura junto? Paciente: Muita tontura. Médico: Já desmaiou? Paciente: Cheguei a desmaiar uma vez. Médico: Sente dor no peito? Paciente: Não, dor não. Médico: Ao exame, taquicárdico. No eletrocardiograma, taquicardia com inversão de onda T. Fizemos ablação por cateter e prescrevi amiodarona. Diagnóstico: arritmia cardíaca.",
+   gabarito:["Palpitação","Tontura","Síncope","Taquicardia","Eletrocardiograma","Inversão de onda T","Ablação por cateter","Amiodarona","Arritmias"]},
   {protocolo:"Doença Arterial Coronariana",titulo:"Homem — angina aos esforços",
-   vinheta:"Homem hipertenso e fumante, com colesterol alto. Tem angina estável, com dor no peito ao esforço. Usa aspirina e clopidogrel.",
-   gabarito:["Hipertensão arterial","Tabagismo","LDL acima da meta","Angina","Estável","Ácido acetilsalicílico","Clopidogrel"]},
+   vinheta:"Médico: Seu Carlos, me conte. Paciente: Sinto uma dor no peito quando subo escada ou caminho rápido, e melhora quando paro. Médico: O senhor fuma? Paciente: Fumo, sim. Médico: E a pressão e o colesterol? Paciente: Pressão alta e colesterol alto. Médico: Ao exame, quarta bulha. O teste ergométrico foi positivo e a cineangiocoronariografia mostrou lesão obstrutiva. Trata-se de uma angina estável. Prescrevo ácido acetilsalicílico e clopidogrel e encaminho para revascularização. Diagnóstico: doença arterial coronariana.",
+   gabarito:["Tabagismo","Hipertensão arterial","LDL acima da meta","Angina","Estável","Quarta bulha","Teste ergométrico","Cineangiocoronariografia","Ácido acetilsalicílico","Clopidogrel","Revascularização","Doença Arterial Coronariana"]},
   {protocolo:"Fibrilação atrial",titulo:"Idoso — fibrilação atrial",
-   vinheta:"Idoso com palpitação e sensação de coração descompassado, agora com fibrilação atrial confirmada. Faz uso de varfarina.",
-   gabarito:["Idade avançada","Palpitação","Taquicardia","Fibrilação atrial","Varfarina"]},
+   vinheta:"Médico: O que o traz? Paciente: Sinto o coração descompassado e fico cansado à toa. Médico: Sente tontura? Paciente: Sinto, de vez em quando. Médico: Tem pressão alta? Paciente: Tenho. Médico: Ao exame, pulso irregular e taquicárdico. O eletrocardiograma confirmou fibrilação atrial. Iniciei varfarina e diltiazem e programei cardioversão elétrica. Diagnóstico: fibrilação atrial.",
+   gabarito:["Palpitação","Fadiga","Tontura","Hipertensão arterial","Taquicardia","Eletrocardiograma","Fibrilação atrial","Varfarina","Diltiazem","Cardioversão elétrica"]},
 ];
 const BM={caseIdx:0,active:null,sel:new Set(),auto:new Set(),t0:0,tick:null,results:{manual:null,voz:null}};
 function bmProto(){return cardioTree();} // o comparativo é sempre sobre o Protocolo Mestre de Cardiologia
-function bmMark(text){ // marca itens no protocolo do caso a partir de texto (sinônimos + rótulos, com negação)
+function bmMark(text){ // reconstrói a seleção a partir da transcrição completa atual (negação some ao chegar a resposta)
   const t=normv(text);const root=bmProto();const secIds=new Set((root.children||[]).map(c=>c.id));
   const {present}=scanTranscript(t,root);
+  BM.sel=new Set();BM.auto=new Set();
   walk(root,n=>{if(present.has(normv(n.label))&&!secIds.has(n.id)){BM.sel.add(n.id);BM.auto.add(n.id);let p=parentOf(n);while(p){p.open=true;p=parentOf(p);}}});
 }
 function renderBench(host){
