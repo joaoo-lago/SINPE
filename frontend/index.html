@@ -1072,7 +1072,7 @@ function renderAnalysisUI(host){
 /* -------- Nova coleta (manual + voz) -------- */
 const COL={patient:{nome:"",sexo:"Masculino",raca:"Branca"},protocolId:null,selected:new Set(),auto:new Set(),usedVoice:false,negated:new Set()};
 let REC=null;
-const SAMPLE="O paciente refere dor no peito em aperto e falta de ar, com suor frio. Nega palpitação e não teve desmaio. É fumante, tem pressão alta e diabetes, e faz uso de aspirina.";
+const SAMPLE="Médico: Dona Maria, a senhora tem falta de ar? Paciente: Tenho sim, e ando muito cansada. Médico: E dor no peito? Paciente: Não, isso não. Médico: A senhora está suando frio? Paciente: Aham, bastante. Médico: A senhora é fumante? Paciente: Nunca fumei. Médico: Toma algum remédio? Paciente: Só aspirina.";
 /* Sinônimos e termos leigos → item clínico do protocolo (equivalência).
    No sistema real esta etapa é feita por um LLM, que entende linguagem natural
    aberta; aqui um dicionário demonstra o conceito na interface. */
@@ -1116,7 +1116,7 @@ const SYNS=[
   {t:["enjoo","enjôo","enjoado","vontade de vomitar","ânsia","ansia","ânsia de vômito","embrulho no estômago","embrulho no estomago","nauseado","mal estar no estômago"],alvo:["Náuseas"]},
   {t:["vômito","vomito","vomitei","vomitando","botei tudo pra fora","golfei"],alvo:["Vômitos"]},
   {t:["fraqueza","fraco","sem força","sem forca","moleza","prostrado","sem energia","adinamia","abatido"],alvo:["Fraqueza","Fadiga"]},
-  {t:["cansaço","cansaco","canseira","cansado","esgotado","exausto","fadiga","sem disposição","cansa fácil","cansa facil","sem pique","cansado o tempo todo"],alvo:["Fadiga"]},
+  {t:["cansaço","cansaco","canseira","cansado","cansada","esgotado","esgotada","exausto","exausta","fadiga","sem disposição","cansa fácil","cansa facil","sem pique","cansado o tempo todo"],alvo:["Fadiga"]},
   {t:["febre","febril","temperatura alta","corpo quente","estou quente"],alvo:["Febre"]},
   {t:["febre baixa","febrinha","pouca febre"],alvo:["Febrícula (37,3–37,8 ℃)"]},
   {t:["muito sono","sonolento","dormindo muito","sonolência","sonolencia"],alvo:["Sonolência"]},
@@ -1302,12 +1302,25 @@ function presence(t,phrase){ // 'present' | 'negated' | 'absent'
   while((m=re.exec(t))){found=true;const idx=m.index+m[1].length;if(!NEG.test(clauseBefore(t,idx)))affirmed=true;}
   return !found?"absent":affirmed?"present":"negated";
 }
-function scanTranscript(t,root){ // devolve conjuntos de rótulos (normv) presentes e negados
+/* Pistas de resposta afirmativa do paciente a uma pergunta do médico */
+const AFF=/\b(sim|aham|uhum|isso|isso mesmo|exato|exatamente|positivo|tenho|tem sim|com certeza|correto|afirmativo|claro|bastante|demais)\b/;
+function scanSegment(seg,root,base,present,negated){ // base: 'present'|'negated'; negação local (sem/nega) refina
+  const put=(alvos,pr)=>{const eff=pr==="negated"?"negated":base;alvos.forEach(a=>{const na=normv(a);eff==="present"?present.add(na):negated.add(na);});};
+  SYNS.forEach(s=>s.t.forEach(term=>{const pr=presence(seg,normv(term));if(pr!=="absent")put(s.alvo,pr);}));
+  walk(root,n=>{const nn=normv(n.label);if(nn.length>=5){const pr=presence(seg,nn);if(pr!=="absent")put([n.label],pr);}});
+}
+function scanTranscript(t,root){ // consciente de diálogo: liga a PERGUNTA do médico à RESPOSTA (sim/não) do paciente
   const present=new Set(),negated=new Set();
-  const add=(alvos,pr)=>alvos.forEach(a=>{const na=normv(a);if(pr==="present")present.add(na);else if(pr==="negated")negated.add(na);});
-  SYNS.forEach(s=>s.t.forEach(term=>{const pr=presence(t,normv(term));if(pr!=="absent")add(s.alvo,pr);}));
-  walk(root,n=>{const nn=normv(n.label);if(nn.length>=5){const pr=presence(t,nn);if(pr!=="absent")add([n.label],pr);}});
-  present.forEach(x=>negated.delete(x)); // afirmação em algum ponto prevalece
+  const raw=t.split(/([.?!;\n]+)/);const segs=[];
+  for(let i=0;i<raw.length;i+=2){const txt=(raw[i]||"").trim();const d=raw[i+1]||"";if(txt)segs.push({txt,q:d.includes("?")});}
+  for(let i=0;i<segs.length;i++){const s=segs[i];
+    if(s.q){ // pergunta: só marca se a próxima oração responder sim/não
+      const ans=segs[i+1]?segs[i+1].txt:"";
+      if(NEG.test(ans))scanSegment(s.txt,root,"negated",present,negated);
+      else if(AFF.test(ans))scanSegment(s.txt,root,"present",present,negated);
+    } else scanSegment(s.txt,root,"present",present,negated); // fala afirmativa / ditado direto
+  }
+  present.forEach(x=>negated.delete(x)); // afirmação em algum ponto prevalece sobre negação
   return {present,negated};
 }
 function applyTranscript(text){
