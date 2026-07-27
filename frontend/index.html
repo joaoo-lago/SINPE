@@ -137,6 +137,7 @@
     padding:2px 7px;border-radius:999px;flex:none}
   .badge{font-size:9.5px;font-weight:700;letter-spacing:.03em;padding:3px 7px;border-radius:6px;flex:none;text-transform:uppercase}
   .badge.mult{background:var(--info-soft);color:var(--info)}
+  .badge.uni{background:var(--accent-soft);color:var(--accent-ink)}
   .badge.typ{background:color-mix(in srgb,var(--warn) 15%,transparent);color:var(--warn)}
   .tchildren{margin-left:19px;border-left:2px solid var(--line);padding-left:3px}
   @media (prefers-reduced-motion:no-preference){
@@ -378,371 +379,219 @@ let ROLE="admin", uid=1; const nid=()=>"n"+(uid++);
 
 /* Protocolo mestre de Cardiologia — Anexo 2 do PIBIC. "profundidade]Rótulo", "]U" = seleção única. */
 const SEED=`
-1]Infarto Agudo do Miocárdio
-2]Anamnese
-3]DAC conhecida
-4]Com intervenção prévia
-4]Sem intervenção prévia
-3]Fatores de risco
-4]História familiar
-5]IAM <60 e 65 anos
-5]AVE
-5]ATC/RVM
-4]LDL acima da meta
-4]Hipertrigliceridemia
-4]Hipertensão arterial
-5]Pré hipertenso]U
-5]HA estágio 1]U
-5]HA estágio 2]U
-5]HA estágio 3]U
-4]Tabagismo
-4]Obesidade
-4]Diabetes
-4]Estresse
-4]Sedentarismo
-4]Distúrbios do sono
-3]Fator desencadeante
-4]Exercício
-4]Frio
-4]Estresse emocional
-3]Angina
-4]Tipo
-5]Estável
-5]Instável
-4]Localização
-5]Retroesternal
-5]Braço esquerdo
-5]Dorso
-5]Pescoço
-5]Mandíbula
-5]Epigástrio
-5]Braço direito
-4]Caráter
-5]Aperto]U
-5]Peso]U
-5]Sufocante]U
-5]Queimação]U
-4]Intensidade
-5]Leve
-5]Moderada
-5]Intensa
-5]Intolerável
-3]Sintomas associados
-4]Dispneia
-4]Fraqueza
-4]Síncope
-4]Febre
-5]Febrícula (37,3–37,8 ℃)]U
-5]Febre (>37,8 ℃)]U
-5]Febre alta (>39 ℃)]U
-4]Náuseas
-4]Vômitos
-4]Sudorese
-3]Lesão relacionada com isquemia
-4]Taquiarritmias
-4]Bradiarritmias
-4]Dissecção aórtica
-4]Cardiomiopatia hipertrófica
-4]Choque hipovolêmico
-4]Choque cardiogênico
-4]Insuficiência respiratória grave
-2]Exame físico
-3]Tórax
-4]Frequência respiratória elevada
-4]Respiração de Cheyne-Stokes
-4]Estertores
-4]Sibilos difusos
-4]Hemoptise
-3]Ausculta cardíaca
-4]Taquicardia
-4]Bradicardia
-4]Abafamento da primeira bulha
-4]Abafamento da segunda bulha
-4]Terceira bulha
-4]Quarta bulha
-4]Sopro sistólico
-5]Transitórios
-5]Persistentes
-4]Atritos pericárdicos
-2]Tratamento
-3]Ácido acetilsalicílico
-3]Clopidogrel
-3]Ticagrelor
-3]Nitratos
-3]Nitroglicerina
-3]Betabloqueadores
-3]O2
-3]Fibrinólise
-3]Revascularização do miocárdio
-3]Heparina
-2]Retorno
-3]Melhora total]U
-3]Melhora parcial]U
-3]Inalterado]U
-3]Piora]U
-1]Doença Arterial Coronariana
-2]Anamnese
-3]Fatores de risco
-4]História familiar
-4]LDL acima da meta
-4]HDL baixo
-4]Hipertrigliceridemia
-4]Hipertensão arterial
-4]Dislipidemia
-4]Tabagismo
-4]Obesidade
-4]Diabetes
-2]Manifestações clínicas
-3]Angina estável
-3]Angina instável
-3]Dor
-4]Localização
-5]Retroesternal
-5]Braço esquerdo
-5]Dorso
-5]Epigástrio
-3]Síncope
-3]Dispneia
-3]Fadiga
-3]Sudorese
-2]Complicações
-3]Arritmias
-3]Parada cardíaca
-3]Infarto agudo do miocárdio
-3]Cardiomiopatia isquêmica
-3]Insuficiência cardíaca
-2]Tratamento
-3]Controle dos fatores de risco
-3]Ácido acetilsalicílico
-3]Clopidogrel
-3]Ticagrelor
-3]Nitratos
-3]Betabloqueadores
-3]Inibidores de ECA
-3]Estatinas
-3]Revascularização do miocárdio
-2]Retorno
-3]Melhora total]U
-3]Melhora parcial]U
-3]Inalterado]U
-3]Piora]U
-1]Hipertensão Arterial
-2]Anamnese
-3]Fatores de risco
-4]História familiar
-4]LDL acima da meta
-4]Hipertrigliceridemia
-4]Gravidez
-4]Tabagismo
-4]Obesidade
-4]Diabetes
-4]Estresse
-4]Sedentarismo
-4]Alimentação rica em sal
-3]Feocromocitoma
+1]Anamnese
+2]Fatores de Risco
+3]Alimentação rica em sal
+3]Cardiopatia
 3]Doença renal crônica
-3]Hipertensão renovascular
+3]Feocromocitoma
 3]Hiperaldosteronismo primário
-3]Complicações
-4]Hipertrofia de ventrículo esquerdo
-4]AVC
-4]Encefalopatia hipertensiva
-4]Nefropatia hipertensiva
-4]Retinopatia hipertensiva
-3]Classificação
-4]Pré hipertenso]U
-4]HA estágio 1]U
-4]HA estágio 2]U
-4]HA estágio 3]U
-2]Tratamento
+3]Diabetes
+3]Distúrbios do sono
+3]Doença de Chagas
+3]Doença viral recente
+3]Etilismo
+3]Estresse
+3]Exposição a substâncias cardiotóxicas
+3]HDL baixo
+3]Hipertrigliceridemia
+3]Hipertensão arterial
+4]Estágio 1 (140-159 / 90-99 mmHg)
+4]Estágio 2 (160-179 / 100-109 mmHg)
+4]Estágio 3 (≥180/≥110 mmHg)
+4]Pré-hipertenso (130-139 / 85-89 mmHg)
+3]HIV
+3]Idade avançada
+3]LDL acima da meta
+3]Obesidade
+3]História prévia de IC
+3]Sedentarismo
+3]Tabagismo
+2]História Familiar
+3]AVE
+3]IAM em familiares < 60 e 65 anos
+3]Insuficiência cardíaca
+3]Procedimentos como ATC/RVM
+2]Sintomas
+3]Angina
+4]Estável]U
+4]Instável]U
+3]Dispneia
+3]Dispneia paroxística noturna
+3]Diminuição da capacidade de exercício
+3]Dor abdominal
+3]Edema
+3]Fadiga
+3]Ganho de peso
+3]Noctúria
+3]Ortopneia
+3]Palpitação
+3]Perda de apetite
+3]Perda de peso
+3]Respiração curta
+3]Síncope
+3]Sonolência
+3]Sudorese
+3]Taquipneia
+3]Tontura
+1]Exame Físico
+2]Ascite
+2]Anasarca
+2]Aumento ou inchaço da cintura abdominal
+2]Ausculta Cardíaca
+3]Atritos pericárdicos
+3]Bradicardia
+3]Bulhas abafadas
+3]Bulhas hipofonéticas
+3]Ictus cordis deslocado à esquerda
+3]Primeira bulha inaudível
+3]Quarta bulha
+3]Ruídos adventícios à ausculta
+3]Sopro regurgitante mitral ou tricúspide
+3]Sopros sistólico
+4]Persistentes]U
+4]Transitórios]U
+3]Taquicardia
+3]Terceira bulha
+2]Edema de membros inferiores
+2]Extremidades frias
+2]Hepatomegalia
+2]Pressão jugular elevada
+2]Pulso filiforme
+2]Taquipneia
+2]Tórax
+3]Estertores
+3]Frequência respiratória elevada
+3]Hemoptise
+3]Respiração de Cheyne-Stokes
+3]Sibilos difusos
+1]Exames complementares
+2]Cineangiocoronariografia
+3]Alterado
+3]Normal
+2]Cintilografia miocárdica
+3]Alterado
+3]Normal
+2]Ecocardiograma
+3]Alterado
+3]Normal
+2]Ecocardiograma de estresse
+3]Alterado
+3]Normal
+2]Eletrocardiograma
+3]Bloqueio de ramo
+3]Depressão no segmento ST
+3]Elevação no segmento ST
+3]Inversão de onda T
+3]Normal
+3]Supradesnivelamento de ST
+2]Perfil lipídico
+3]Alterado
+3]Normal
+2]Ressonância magnética
+3]Alterado
+3]Normal
+2]Teste ergométrico
+3]Alterado
+3]Normal
+1]Tratamento
+2]Farmacológico
+3]Antiarrítmicos
+4]Adenosina
+4]Amiodarona
+4]Flecainida
+4]Propafenona
+4]Sotalol
+3]Antiagregantes
+4]Ácido acetilsalicílico
+4]Clopidogrel
+3]Anticoagulantes
+4]NOACs
+4]Varfarina
+3]Bloqueadores dos Canais de Cálcio
+4]Anlodipino
+4]Diltiazem
+4]Nifedipino
+4]Verapamil
+3]BRAs
+4]Candesartana
+4]Losartana
+4]Olmesartana
+4]Telmisartana
+4]Valsartana
 3]Diuréticos
+4]Amilorida
+4]Clortalidona
+4]Espironolactona
 4]Furosemida
 4]Hidroclorotiazida
-4]Clortalidona
 4]Indapamida
-4]Espironolactona
+4]Triantereno
+3]IECAs
+4]Captopril
+4]Enalapril
+3]Inibidores da SGLT2
+4]Canagliflozina
+4]Dapagliflozina
+4]Empagliflozina
 3]Simpaticolíticos
-4]Clonidina
-4]Doxazosina
+4]Alfametildopa
 4]Atenolol
 4]Bisoprolol
-4]Propranolol
 4]Carvedilol
+4]Clonidina
+4]Doxazosina
 4]Metoprolol
-3]Vasodilatadores diretos
+4]Prazosina
+4]Terazosina
+3]Vasodilatadores Diretos
 4]Hidralazina
 4]Minoxidil
 4]Nitroprussiato de sódio
-3]Bloqueadores dos canais de cálcio
-4]Verapamil
-4]Diltiazem
-4]Anlodipino
-4]Nifedipino
-3]IECAs
-4]Enalapril
-4]Captopril
-3]BRAs
-4]Losartana
-4]Valsartana
-4]Candesartana
-4]Telmisartana
-4]Olmesartana
-2]Retorno
-3]Melhora total]U
-3]Melhora parcial]U
-3]Inalterado]U
-3]Piora]U
-1]Arritmias (não fibrilação atrial)
-2]Anamnese
-3]Classificação
-4]Taquicardia]U
-5]Flutter atrial]U
-5]Taquicardia ventricular]U
-4]Bradicardia]U
-5]Bradicardia sinusal]U
-5]Bloqueio cardíaco]U
-3]Fatores de risco
-4]Idade avançada
-4]Pressão alta
-4]Diabetes
-4]Outras cardiopatias prévias
-4]Histórico familiar
-4]Obesidade
-4]Sedentarismo
-4]Etilismo
-3]Sintomas
-4]Palpitação
-4]Tontura
-4]Angina
-4]Dispneia
-4]Síncope
-2]Diagnóstico
-3]ECG
-3]Holter de 24h
-3]Teste ergométrico
-3]RM do coração
-2]Tratamento
-3]Medicamentoso
-4]Flecainida, propafenona
-4]Betabloqueadores
-4]Amiodarona, dronedarona, sotalol
-4]Bloqueadores canais de cálcio
-4]Digoxina
-3]Cardioversão elétrica
+2]Não farmacológico
+3]Mudanças no estilo de vida
+2]Procedimentos
 3]Ablação por cateter
-3]Marcapasso, desfibrilador
+3]Cardioversão elétrica
 3]Cirurgia
-2]Retorno
-3]Melhora total]U
-3]Melhora parcial]U
-3]Inalterado]U
-3]Piora]U
-1]Fibrilação Atrial
-2]Anamnese
-3]Classificação
-4]Primária]U
-4]Secundária]U
-5]HAS
-5]Cardiopatia isquêmica
-5]Valvopatia
-5]Cardiomiopatia dilatada
-5]Endocrinopatia
-5]Cirurgia cardíaca
-3]Apresentação clínica
-4]Paroxística]U
-4]Persistente]U
-4]De longa duração]U
-3]Sintomas
-4]Palpitação
-4]Tontura
-4]Angina
-4]Dispneia
-4]Síncope
-2]Diagnóstico
-3]Exame físico
-3]ECG com intervalo R-R irregular
-2]Tratamento
-3]Farmacológico
-4]Anticoagulantes
-5]NOACs
-5]Varfarina
-4]Betabloqueadores
-4]Amiodarona
-4]Propafenona
-4]Quinidina
-3]Não farmacológico
-4]Cardioversão elétrica
-4]Ablação por radiofrequência
-4]Cirurgia
-2]Retorno
-3]Melhora total]U
-3]Melhora parcial]U
-3]Inalterado]U
-3]Piora]U
-1]Insuficiência Cardíaca
-2]Anamnese
-3]Classe funcional NYHA
-4]I]U
-4]II]U
-4]III]U
-4]IV]U
-3]Classificação
-4]Anterógrada
-4]Retrógrada (congestiva)
-4]Direita
-4]Esquerda
-3]Sintomas
-4]Fadiga
-4]Dispneia
-4]Ortopneia
-4]Dispneia paroxística noturna
-4]Noctúria
-4]Edema
-4]Tosse
-2]Exame físico
-3]Taquicardia
-3]Pressão venosa jugular elevada
-3]Terceira bulha
-3]Hepatomegalia
-3]Ascite
-3]Edema de membros inferiores
-2]Exames
-3]Radiografia de tórax
-3]ECG
-3]Biomarcadores
-2]Tratamento
-3]Farmacológico
-4]IECA
-4]Inibidores da SGLT2
-4]BRA (Sacubitril-Valsartana)
-4]Digitálicos
-4]Diuréticos
-4]Betabloqueador
-4]Anticoagulantes
-3]Não farmacológico
-3]Cirúrgico
-2]Retorno
-3]Melhora total]U
-3]Melhora parcial]U
-3]Inalterado]U
-3]Piora]U
+3]Implante de marcapasso
+3]Revascularização
+1]Diagnóstico
+2]Arritmias
+2]Doença Arterial Coronariana
+2]Fibrilação atrial
+2]Hipertensão arterial sistêmica
+2]Infarto agudo do miocárdio
+2]Insuficiência Cardíaca
+3]Direita
+3]Esquerda
+3]Biventricular
+1]Retorno
+2]Inalterado]U
+2]Melhora parcial]U
+2]Melhora total]U
+2]Piora]U
 `;
-const MULTI=new Set(["Fatores de risco","Sintomas associados","Sintomas","Manifestações clínicas","Complicações","Lesão relacionada com isquemia"]);
 function buildSeed(){
-  const root={id:nid(),label:"Cardiologia",type:"logical",selection:"single",media:false,open:true,children:[]};
-  const stack={0:root};
+  // Raiz = Protocolo Mestre. Por padrão os itens são de múltipla seleção;
+  // um item marcado com ]U (preenchimento único) torna o PAI de seleção única.
+  const root={id:nid(),label:"Protocolo Mestre — Cardiologia",type:"logical",selection:"multiple",media:false,open:true,children:[]};
+  const stack={0:root};const singleParents=new Set();
   SEED.trim().split("\n").forEach(line=>{
-    const m=line.match(/^(\d+)\](.*)$/); if(!m)return;
+    const m=line.match(/^\s*(\d+)\](.*)$/); if(!m)return;
     const depth=+m[1]; let rest=m[2].trim();
-    if(rest.endsWith("]U"))rest=rest.slice(0,-2).trim();
-    const node={id:nid(),label:rest,type:"logical",selection:MULTI.has(rest)?"multiple":"single",media:false,open:false,children:[]};
-    const p=stack[depth-1]; if(p){p.children.push(node);stack[depth]=node;}
+    let single=false;
+    if(/\]u$/i.test(rest)){rest=rest.replace(/\]u$/i,"").trim();single=true;}
+    rest=rest.replace(/^\d+\]\s*/,""); // conserta rótulos com prefixo numérico duplicado
+    const node={id:nid(),label:rest,type:"logical",selection:"multiple",media:false,open:false,children:[]};
+    const p=stack[depth-1]; if(p){p.children.push(node);stack[depth]=node;if(single)singleParents.add(p.id);}
   });
+  walk(root,n=>{if(singleParents.has(n.id))n.selection="single";});
   return root;
 }
-function loadTree(){try{const s=localStorage.getItem("sinpe_tree_v2");if(s){const t=JSON.parse(s);fixIds(t);return t;}}catch(e){}return buildSeed();}
+function loadTree(){try{const s=localStorage.getItem("sinpe_tree_v3");if(s){const t=JSON.parse(s);fixIds(t);return t;}}catch(e){}return buildSeed();}
 function fixIds(n){if(!n.id)n.id=nid();else{const k=+String(n.id).replace(/\D/g,"");if(k>=uid)uid=k+1;}(n.children||[]).forEach(fixIds);}
-function saveTree(){try{localStorage.setItem("sinpe_tree_v2",JSON.stringify(TREE));}catch(e){}}
+function saveTree(){try{localStorage.setItem("sinpe_tree_v3",JSON.stringify(TREE));}catch(e){}}
 
 let TREE=null, VIEW=null, SELECTED=null, FILTER="", justToggled=null;
 
@@ -780,7 +629,7 @@ function renderAdmin(v){
         <div class="protobar">
           <select id="protoSel" title="Protocolo">
             <option value="__master">🫀 Protocolo Mestre — Cardiologia (completo)</option>
-            ${specifics.map(s=>`<option value="${s.id}">Específico · ${escapeHtml(s.label)}</option>`).join("")}
+            ${specifics.map(s=>`<option value="${s.id}">Seção · ${escapeHtml(s.label)}</option>`).join("")}
           </select>
           <input id="search" placeholder="🔍 Buscar item na árvore…">
           <button class="tbtn pri" id="newProto" style="white-space:nowrap">➕ Novo protocolo</button>
@@ -817,7 +666,7 @@ function renderAdmin(v){
   document.getElementById("del").onclick=deleteNode;
   document.getElementById("expandAll").onclick=()=>{walk(VIEW,n=>n.open=true);drawTree();};
   document.getElementById("collapseAll").onclick=()=>{walk(VIEW,n=>{if(n!==VIEW)n.open=false;});drawTree();};
-  document.getElementById("reset").onclick=()=>{if(confirm("Restaurar o protocolo de Cardiologia original? As alterações locais serão perdidas.")){localStorage.removeItem("sinpe_tree_v2");uid=1;TREE=buildSeed();VIEW=TREE;SELECTED=null;FILTER="";drawTree();drawInsp();}};
+  document.getElementById("reset").onclick=()=>{if(confirm("Restaurar o Protocolo Mestre original? As alterações locais serão perdidas.")){localStorage.removeItem("sinpe_tree_v3");uid=1;TREE=buildSeed();VIEW=TREE;SELECTED=null;FILTER="";drawTree();drawInsp();}};
   drawTree();drawInsp();
 }
 function findById(n,id){if(n.id===id)return n;for(const c of n.children||[]){const r=findById(c,id);if(r)return r;}return null;}
@@ -848,7 +697,7 @@ function nodeEl(node,isRoot){
   const lab=document.createElement("div");lab.className="tlabel";lab.textContent=isRoot?("🫀 "+node.label):node.label;
   row.appendChild(lab);
   if(hasKids&&!node.open){const c=document.createElement("span");c.className="cc";c.textContent=(node.children.length);row.appendChild(c);}
-  if(!isRoot&&node.selection==="multiple"){const b=document.createElement("span");b.className="badge mult";b.textContent="múltipla";row.appendChild(b);}
+  if(!isRoot&&node.selection==="single"&&(node.children||[]).length){const b=document.createElement("span");b.className="badge uni";b.textContent="única";row.appendChild(b);}
   if(!isRoot&&node.type!=="logical"){const b=document.createElement("span");b.className="badge typ";b.textContent=node.type;row.appendChild(b);}
   row.onclick=()=>{SELECTED=node;drawTree();drawInsp();};
   wrap.appendChild(row);
@@ -1072,7 +921,7 @@ const PAL=["var(--accent)","color-mix(in srgb,var(--accent) 55%,var(--surface-2)
 function counts(f){const m=new Map();PATIENTS.forEach(p=>m.set(p[f],(m.get(p[f])||0)+1));return[...m.entries()].sort((a,b)=>b[1]-a[1]);}
 let USERTAB="coleta";
 function renderResearcher(v){
-  if(!COL.protocolId)COL.protocolId=(TREE.children[0]||{}).id;
+  if(!COL.protocolId||!findById(TREE,COL.protocolId))COL.protocolId=TREE.id;
   v.innerHTML=`
     <div class="page-head"><div class="eyebrow">Pesquisador</div>
       <h2>Área do pesquisador</h2>
@@ -1285,7 +1134,7 @@ const SYNS=[
   {t:["colesterol bom baixo","hdl baixo"],alvo:["HDL baixo"]},
   {t:["triglicerídeos altos","triglicerideos altos","triglicerídeo alto"],alvo:["Hipertrigliceridemia"]},
   {t:["alcoólatra","alcoolatra","uso de álcool","bebida alcoólica","bebida alcoolica","etilista","bebe muito","bebe todo dia","ingere álcool"],alvo:["Etilismo"]},
-  {t:["sedentário","sedentario","não faz exercício","nao faz exercicio","não se exercita","vida parada","sem atividade física","não pratica atividade"],alvo:["Sedentarismo"]},
+  {t:["sedentário","sedentario","sedentária","sedentaria","não faz exercício","nao faz exercicio","não se exercita","vida parada","sem atividade física","não pratica atividade"],alvo:["Sedentarismo"]},
   {t:["estressado","nervoso","ansioso","tensão emocional","muito estresse","sob pressão emocional","estresse"],alvo:["Estresse","Estresse emocional"]},
   {t:["histórico na família","historico na familia","casos na família","hereditário","hereditario","tem na família","pais com problema no coração","história familiar","historia familiar"],alvo:["História familiar","Histórico familiar"]},
   {t:["dorme mal","insônia","insonia","não dorme direito","apneia do sono","ronca muito","sono ruim"],alvo:["Distúrbios do sono"]},
@@ -1342,7 +1191,9 @@ const SYNS=[
   {t:["marcapasso","desfibrilador"],alvo:["Marcapasso, desfibrilador"]},
   {t:["fibrinólise","fibrinolise","trombolítico","trombolitico"],alvo:["Fibrinólise"]},
   /* ---------- Exames ---------- */
-  {t:["eletrocardiograma","ecg","fez ecg"],alvo:["ECG","ECG com intervalo R-R irregular"]},
+  {t:["eletrocardiograma","ecg","fez ecg"],alvo:["Eletrocardiograma","ECG","ECG com intervalo R-R irregular"]},
+  {t:["ecocardiograma","eco do coração","eco do coracao"],alvo:["Ecocardiograma"]},
+  {t:["cateterismo cardíaco","cineangiocoronariografia","coronariografia"],alvo:["Cineangiocoronariografia"]},
   {t:["holter","holter de 24h"],alvo:["Holter de 24h"]},
   {t:["teste ergométrico","teste ergometrico","teste de esforço","esteira"],alvo:["Teste ergométrico"]},
   {t:["raio x de tórax","radiografia de tórax","radiografia de torax","rx de tórax"],alvo:["Radiografia de tórax"]},
@@ -1356,12 +1207,12 @@ const SYNS=[
 ];
 function protoNode(){return findById(TREE,COL.protocolId)||TREE;}
 function renderColeta(host){
-  const specifics=TREE.children||[];
+  const opts=[TREE,...(TREE.children||[])]; // Protocolo Mestre + suas seções, se quiser coletar por seção
   host.innerHTML=`
     <div class="coleta-grid">
       <div class="panel">
         <div class="protobar"><select id="colProto" title="Protocolo">
-          ${specifics.map(s=>`<option value="${s.id}" ${s.id===COL.protocolId?"selected":""}>${escapeHtml(s.label)}</option>`).join("")}</select></div>
+          ${opts.map((s,i)=>`<option value="${s.id}" ${s.id===COL.protocolId?"selected":""}>${i===0?"🫀 ":"— "}${escapeHtml(s.label)}</option>`).join("")}</select></div>
         <div class="patient">
           <div class="field"><label>Paciente</label><input id="pNome" placeholder="Nome do paciente" value="${escapeHtml(COL.patient.nome)}"></div>
           <div class="field"><label>Sexo</label><select id="pSexo">${["Masculino","Feminino","Indefinido"].map(o=>`<option ${COL.patient.sexo===o?"selected":""}>${o}</option>`).join("")}</select></div>
@@ -1438,9 +1289,9 @@ function applyTranscript(text){
   SYNS.forEach(s=>{if(s.t.some(term=>hit(t,normv(term))))s.alvo.forEach(a=>wanted.add(normv(a)));});
   // 2) termos que já batem com o próprio rótulo do protocolo
   walk(protoNode(),n=>{const nn=normv(n.label);if(nn.length>=5&&hit(t,nn))wanted.add(nn);});
-  // marca os nós correspondentes dentro do protocolo selecionado
-  let marked=0;
-  walk(protoNode(),n=>{if(wanted.has(normv(n.label))&&!COL.selected.has(n.id)){COL.selected.add(n.id);COL.auto.add(n.id);marked++;let p=parentOf(n);while(p){p.open=true;p=parentOf(p);}}});
+  // marca os nós correspondentes dentro do protocolo selecionado (nunca as seções/cabeçalhos)
+  let marked=0;const secIds=new Set((TREE.children||[]).map(c=>c.id));
+  walk(protoNode(),n=>{if(wanted.has(normv(n.label))&&!secIds.has(n.id)&&!COL.selected.has(n.id)){COL.selected.add(n.id);COL.auto.add(n.id);marked++;let p=parentOf(n);while(p){p.open=true;p=parentOf(p);}}});
   if(marked>0)COL.usedVoice=true;
   protoNode().open=true;drawColTree();drawSel();
 }
@@ -1481,27 +1332,33 @@ function toast(m){const t=document.createElement("div");t.className="toast";t.te
 
 /* ================= COMPARATIVO IA × MANUAL (metodologia do PIBIC) ================= */
 const CASES=[
-  {protocolo:"Infarto Agudo do Miocárdio",titulo:"Homem, 62 anos — dor torácica",
-   vinheta:"Homem de 62 anos, fumante e hipertenso, também diabético. Chegou com dor no peito em aperto, de forte intensidade, irradiando para o braço esquerdo, com falta de ar, suor frio e náuseas. No hospital recebeu aspirina e betabloqueador.",
-   gabarito:["Tabagismo","Hipertensão arterial","Diabetes","Angina","Aperto","Intensa","Braço esquerdo","Dispneia","Sudorese","Náuseas","Ácido acetilsalicílico","Betabloqueadores"]},
-  {protocolo:"Hipertensão Arterial",titulo:"Mulher, 55 anos — hipertensão",
-   vinheta:"Mulher de 55 anos, obesa e sedentária, que come muito sal. Está em uso de losartana e hidroclorotiazida.",
+  {protocolo:"Infarto agudo do miocárdio",titulo:"Homem, 62 anos — dor torácica",
+   vinheta:"Homem de 62 anos, fumante, hipertenso e diabético. Chegou com dor no peito e falta de ar, com muito suor frio. No hospital recebeu aspirina.",
+   gabarito:["Tabagismo","Hipertensão arterial","Diabetes","Angina","Dispneia","Sudorese","Ácido acetilsalicílico"]},
+  {protocolo:"Hipertensão arterial sistêmica",titulo:"Mulher, 55 anos — hipertensão",
+   vinheta:"Mulher de 55 anos, obesa e sedentária, que come muito sal. Faz uso de losartana e hidroclorotiazida.",
    gabarito:["Obesidade","Sedentarismo","Alimentação rica em sal","Losartana","Hidroclorotiazida"]},
   {protocolo:"Insuficiência Cardíaca",titulo:"Idoso — insuficiência cardíaca",
-   vinheta:"Idoso com muito cansaço, falta de ar ao deitar, pernas inchadas e barriga inchada, e que acorda várias vezes para urinar. Faz uso de diurético.",
-   gabarito:["Fadiga","Ortopneia","Edema de membros inferiores","Ascite","Noctúria","Diuréticos"]},
-  {protocolo:"Arritmias (não fibrilação atrial)",titulo:"Paciente — palpitações",
-   vinheta:"Paciente relata coração acelerado, muita tontura e um episódio de desmaio. Fez holter e está em uso de amiodarona.",
-   gabarito:["Palpitação","Tontura","Síncope","Holter de 24h","Amiodarona, dronedarona, sotalol"]},
+   vinheta:"Idoso com muito cansaço, falta de ar ao deitar, pernas inchadas e barriga inchada, e que acorda várias vezes para urinar. Faz uso de furosemida.",
+   gabarito:["Idade avançada","Fadiga","Dispneia","Ortopneia","Edema","Edema de membros inferiores","Ascite","Noctúria","Furosemida"]},
+  {protocolo:"Arritmias",titulo:"Paciente — palpitações",
+   vinheta:"Paciente relata coração acelerado, muita tontura e um episódio de desmaio. Fez eletrocardiograma e está em uso de amiodarona.",
+   gabarito:["Palpitação","Taquicardia","Tontura","Síncope","Eletrocardiograma","Amiodarona"]},
+  {protocolo:"Doença Arterial Coronariana",titulo:"Homem — angina aos esforços",
+   vinheta:"Homem hipertenso e fumante, com colesterol alto. Tem angina estável, com dor no peito ao esforço. Usa aspirina e clopidogrel.",
+   gabarito:["Hipertensão arterial","Tabagismo","LDL acima da meta","Angina","Estável","Ácido acetilsalicílico","Clopidogrel"]},
+  {protocolo:"Fibrilação atrial",titulo:"Idoso — fibrilação atrial",
+   vinheta:"Idoso com palpitação e sensação de coração descompassado, agora com fibrilação atrial confirmada. Faz uso de varfarina.",
+   gabarito:["Idade avançada","Palpitação","Taquicardia","Fibrilação atrial","Varfarina"]},
 ];
 const BM={caseIdx:0,active:null,sel:new Set(),auto:new Set(),t0:0,tick:null,results:{manual:null,voz:null}};
-function bmProto(){return TREE.children.find(c=>c.label===CASES[BM.caseIdx].protocolo)||TREE;}
+function bmProto(){return TREE;} // coleta sobre o Protocolo Mestre completo
 function bmMark(text){ // marca itens no protocolo do caso a partir de texto (sinônimos + rótulos)
   const t=normv(text),wanted=new Set();
   SYNS.forEach(s=>{if(s.t.some(term=>hit(t,normv(term))))s.alvo.forEach(a=>wanted.add(normv(a)));});
-  const root=bmProto();
+  const root=bmProto();const secIds=new Set((TREE.children||[]).map(c=>c.id));
   walk(root,n=>{const nn=normv(n.label);if(nn.length>=5&&hit(t,nn))wanted.add(nn);});
-  walk(root,n=>{if(wanted.has(normv(n.label))){BM.sel.add(n.id);BM.auto.add(n.id);let p=parentOf(n);while(p){p.open=true;p=parentOf(p);}}});
+  walk(root,n=>{if(wanted.has(normv(n.label))&&!secIds.has(n.id)){BM.sel.add(n.id);BM.auto.add(n.id);let p=parentOf(n);while(p){p.open=true;p=parentOf(p);}}});
 }
 function renderBench(host){
   const c=CASES[BM.caseIdx];
