@@ -266,6 +266,38 @@
   .cmp-verdict b{color:var(--accent-ink)}
   .bm-empty{color:var(--muted);font-size:13px;text-align:center;padding:20px 8px;line-height:1.5}
   .pend{opacity:.5}
+  .muted{color:var(--muted)}
+
+  /* ---------- Aba Coletas ---------- */
+  .col-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;font-size:14px}
+  .col-list{display:flex;flex-direction:column;gap:10px}
+  .col-card{border:1px solid var(--line);border-radius:13px;background:var(--surface);box-shadow:var(--sh-sm);overflow:hidden}
+  .col-row{display:flex;align-items:center;gap:12px;padding:13px 15px;cursor:pointer}
+  .col-row:hover{background:var(--surface-2)}
+  .col-twist{color:var(--muted);font-size:13px;width:14px;flex:none}
+  .col-main{flex:1;min-width:0}
+  .col-name{font-weight:700;font-size:14px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .col-sub{color:var(--muted);font-size:12.5px;margin-top:3px}
+  .col-del{border:1.5px solid var(--line);background:var(--surface);color:var(--muted);width:30px;height:30px;border-radius:9px;cursor:pointer;font-size:14px;flex:none}
+  .col-del:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+  .col-items{display:flex;flex-wrap:wrap;gap:7px;padding:0 15px 14px 41px}
+  .chiptag{background:var(--surface-3);border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:12px}
+  .modo-badge{font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;letter-spacing:.01em}
+  .modo-badge.voz{background:var(--accent-soft);color:var(--accent-ink);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent)}
+  .modo-badge.manual{background:var(--info-soft);color:var(--info);border:1px solid color-mix(in srgb,var(--info) 30%,transparent)}
+
+  /* ---------- Estatísticas: bases ---------- */
+  .base-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+  .base-list{display:flex;flex-direction:column;gap:11px}
+  .base-card{display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:var(--sh-sm);padding:15px 17px;cursor:pointer;transition:border-color .12s,box-shadow .12s}
+  .base-card:hover{border-color:var(--accent);box-shadow:var(--sh-md)}
+  .base-ico{font-size:24px;flex:none}
+  .base-body{flex:1;min-width:0}
+  .base-name{font-weight:700;font-size:15px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .base-badge{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:var(--surface-3);color:var(--muted);padding:2px 8px;border-radius:999px}
+  .base-go{color:var(--accent-ink);font-weight:700;font-size:13px;flex:none}
+  .analysis-head{display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+  .base-title{font-weight:800;font-size:16px;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
 
   /* ---------- Modal (novo protocolo) ---------- */
   .overlay{position:fixed;inset:0;background:rgba(8,12,22,.55);backdrop-filter:blur(3px);display:grid;place-items:center;z-index:80;padding:20px}
@@ -1047,8 +1079,9 @@ function renderResearcher(v){
       <p>Crie uma coleta a partir de um protocolo — marcando itens na árvore ou ditando por voz — e analise os dados. Os dados do TCC entram como exemplo do que a plataforma produz.</p></div>
     <div class="tabs">
       <button class="tab" data-tab="coleta">🩺 Nova coleta</button>
+      <button class="tab" data-tab="coletas">🗂️ Coletas</button>
       <button class="tab" data-tab="bench">⏱️ Comparativo IA × Manual</button>
-      <button class="tab" data-tab="analise">📊 Análise de dados</button>
+      <button class="tab" data-tab="analise">📊 Estatísticas</button>
     </div>
     <div id="userView"></div>`;
   v.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{USERTAB=t.dataset.tab;paintUserTab();});
@@ -1058,31 +1091,132 @@ function paintUserTab(){
   document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-pressed",t.dataset.tab===USERTAB));
   const h=document.getElementById("userView");if(!h)return;
   if(USERTAB==="coleta")renderColeta(h);
+  else if(USERTAB==="coletas")renderColetas(h);
   else if(USERTAB==="bench")renderBench(h);
   else renderAnalise(h);
 }
-function renderAnalise(host){
+/* =========== COLETAS (registro de todas as coletas feitas) =========== */
+function loadColetas(){try{return JSON.parse(localStorage.getItem("sinpe_coletas")||"[]");}catch(e){return[];}}
+function saveColetas(a){try{localStorage.setItem("sinpe_coletas",JSON.stringify(a));}catch(e){}}
+const OPENCOL=new Set(); // ids expandidos
+function renderColetas(host){
+  const cs=loadColetas().slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+  const fmt=ts=>{const d=new Date(ts||Date.now());return d.toLocaleDateString("pt-BR")+" "+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});};
+  const badge=m=>m==="voz"?`<span class="modo-badge voz">🎙️ Por voz</span>`:`<span class="modo-badge manual">✍️ Manual</span>`;
+  if(!cs.length){host.innerHTML=`<div class="card"><div class="sel-empty">Nenhuma coleta registrada ainda. Vá em <b>Nova coleta</b>, preencha um protocolo (manual ou por voz) e clique em <b>✓ Finalizar coleta</b>. Ela aparece aqui para você conferir, revisar ou apagar.</div></div>`;return;}
+  const nV=cs.filter(c=>c.modo==="voz").length,nM=cs.length-nV;
   host.innerHTML=`
+    <div class="col-head">
+      <div><b>${cs.length}</b> coleta${cs.length>1?"s":""} · <span class="muted">${nM} manual · ${nV} por voz</span></div>
+      <button class="tbtn danger" id="clearColetas">🗑 Apagar todas</button>
+    </div>
+    <div class="col-list">
+      ${cs.map(c=>{const id=c.id||("t"+c.ts);const open=OPENCOL.has(id);return `
+        <div class="col-card">
+          <div class="col-row" data-open="${id}">
+            <div class="col-twist">${open?"▾":"▸"}</div>
+            <div class="col-main">
+              <div class="col-name">${escapeHtml(c.paciente||"(sem nome)")} ${badge(c.modo)}</div>
+              <div class="col-sub">${escapeHtml(c.protocolo||"—")} · ${(c.itens||[]).length} itens · ${escapeHtml(c.sexo||"—")}${c.raca?" · "+escapeHtml(c.raca):""} · ${fmt(c.ts)}</div>
+            </div>
+            <button class="col-del" data-del="${id}" title="Apagar esta coleta">✕</button>
+          </div>
+          ${open?`<div class="col-items">${(c.itens||[]).length?c.itens.map(i=>`<span class="chiptag">${escapeHtml(i)}</span>`).join(""):`<span class="muted">Sem itens.</span>`}</div>`:""}
+        </div>`;}).join("")}
+    </div>`;
+  host.querySelectorAll(".col-row").forEach(r=>r.onclick=e=>{if(e.target.closest(".col-del"))return;const id=r.dataset.open;OPENCOL.has(id)?OPENCOL.delete(id):OPENCOL.add(id);renderColetas(host);});
+  host.querySelectorAll(".col-del").forEach(b=>b.onclick=()=>{
+    const id=b.dataset.del;if(!confirm("Apagar esta coleta? Esta ação não pode ser desfeita."))return;
+    const rest=loadColetas().filter(c=>(c.id||("t"+c.ts))!==id);saveColetas(rest);toast("Coleta apagada.");renderColetas(host);});
+  const ca=document.getElementById("clearColetas");if(ca)ca.onclick=()=>{if(confirm("Apagar TODAS as "+cs.length+" coletas registradas?")){saveColetas([]);OPENCOL.clear();toast("Todas as coletas foram apagadas.");renderColetas(host);}};
+}
+
+/* =========== ESTATÍSTICAS: bases de dados (TCC + bases criadas das coletas) =========== */
+const TCC_VARS={sexo:"Sexo",faixa:"Faixa etária",diagnostico:"Diagnóstico",farmaco:"Classe de fármaco"};
+const COL_VARS={sexo:"Sexo",raca:"Raça",protocolo:"Protocolo",modo:"Método de coleta"};
+let AX={rows:[],vars:{},nome:"",note:"",donut:"sexo"}; // contexto de análise ativo
+let CURBASE=null; // null = lista de bases; senão base aberta
+function loadBases(){try{return JSON.parse(localStorage.getItem("sinpe_bases")||"[]");}catch(e){return[];}}
+function saveBases(a){try{localStorage.setItem("sinpe_bases",JSON.stringify(a));}catch(e){}}
+function renderAnalise(host){
+  if(CURBASE){renderAnalysisUI(host);return;}
+  const bases=loadBases();const nColetas=loadColetas().length;
+  host.innerHTML=`
+    <div class="base-head">
+      <div><h3 style="margin:0">Bases de estatística</h3>
+        <p class="muted" style="margin:4px 0 0;font-size:13px">Escolha uma base para cruzar variáveis e rodar o qui-quadrado. Os dados do TCC são um <b>exemplo</b>; crie a sua própria a partir das coletas.</p></div>
+      <button class="tbtn pri" id="newBase">＋ Nova base a partir das coletas</button>
+    </div>
+    <div class="base-list">
+      <div class="base-card" data-base="tcc">
+        <div class="base-ico">📚</div>
+        <div class="base-body"><div class="base-name">Dados do TCC — João Lago e Luca Adela Barba <span class="base-badge">exemplo</span></div>
+          <div class="muted" style="font-size:12.5px">51 pacientes · base demonstrativa (marginais fiéis, associações ilustrativas)</div></div>
+        <div class="base-go">Abrir →</div>
+      </div>
+      ${bases.map(b=>`
+      <div class="base-card" data-base="${b.id}">
+        <div class="base-ico">📊</div>
+        <div class="base-body"><div class="base-name">${escapeHtml(b.nome)}</div>
+          <div class="muted" style="font-size:12.5px">${(b.rows||[]).length} coletas · criada em ${new Date(b.ts).toLocaleDateString("pt-BR")}</div></div>
+        <button class="col-del" data-delbase="${b.id}" title="Apagar base">✕</button>
+        <div class="base-go">Abrir →</div>
+      </div>`).join("")}
+    </div>
+    ${nColetas?"":`<p class="muted" style="font-size:12.5px;margin-top:14px">Você ainda não tem coletas. Faça algumas em <b>Nova coleta</b> para poder montar uma base própria.</p>`}`;
+  document.getElementById("newBase").onclick=()=>createBaseFromColetas(host);
+  host.querySelectorAll(".base-card").forEach(c=>c.onclick=e=>{
+    if(e.target.closest(".col-del"))return;openBase(c.dataset.base);renderAnalise(host);});
+  host.querySelectorAll("[data-delbase]").forEach(b=>b.onclick=e=>{e.stopPropagation();
+    const id=b.dataset.delbase;if(!confirm("Apagar esta base de estatística?"))return;
+    saveBases(loadBases().filter(x=>x.id!==id));toast("Base apagada.");renderAnalise(host);});
+}
+function createBaseFromColetas(host){
+  const cs=loadColetas();
+  if(!cs.length){toast("Não há coletas para montar uma base. Faça coletas primeiro.");return;}
+  const nome=prompt("Nome da nova base de estatística:","Coletas — "+new Date().toLocaleDateString("pt-BR"));
+  if(nome===null)return;
+  const rows=cs.map(c=>({sexo:c.sexo||"—",raca:c.raca||"—",protocolo:c.protocolo||"—",modo:c.modo==="voz"?"Por voz":"Manual"}));
+  const base={id:"b"+Date.now(),nome:(nome.trim()||"Base sem nome"),ts:Date.now(),rows};
+  const all=loadBases();all.push(base);saveBases(all);
+  toast("Base criada com "+rows.length+" coletas.");renderAnalise(host);
+}
+function openBase(which){
+  if(which==="tcc"){AX={rows:PATIENTS,vars:TCC_VARS,nome:"Dados do TCC — João Lago e Luca Adela Barba",note:"Base demonstrativa: 51 pacientes do TCC — marginais fiéis, associações ilustrativas.",donut:"sexo"};CURBASE="tcc";return;}
+  const b=loadBases().find(x=>x.id===which);if(!b){CURBASE=null;return;}
+  AX={rows:b.rows||[],vars:COL_VARS,nome:b.nome,note:"Base a partir de "+(b.rows||[]).length+" coleta(s) reais desta plataforma.",donut:"sexo"};CURBASE=which;
+}
+function renderAnalysisUI(host){
+  const vars=AX.vars,keys=Object.keys(vars),rows=AX.rows;
+  const secondKey=keys[1]||keys[0];
+  host.innerHTML=`
+    <div class="analysis-head">
+      <button class="tbtn" id="baseBack">← Bases</button>
+      <div class="base-title">${escapeHtml(AX.nome)} <span class="count">${rows.length} registros</span></div>
+    </div>
+    ${rows.length<2?`<div class="card"><div class="sel-empty">Esta base tem poucos registros (${rows.length}). Faça mais coletas para uma análise estatística com sentido.</div></div>`:`
     <div class="grid2">
       <div class="card"><h3>Distribuição de uma variável</h3>
         <div class="controls"><div class="field"><label>Variável</label>
-          <select id="uni">${Object.entries(VARS).map(([k,l])=>`<option value="${k}">${l}</option>`).join("")}</select></div></div>
+          <select id="uni">${keys.map(k=>`<option value="${k}">${vars[k]}</option>`).join("")}</select></div></div>
         <div id="uniChart"></div></div>
       <div class="card"><h3>Cruzamento de variáveis</h3>
         <div class="controls">
-          <div class="field"><label>Variável A</label><select id="cx">${Object.entries(VARS).map(([k,l])=>`<option value="${k}" ${k==="sexo"?"selected":""}>${l}</option>`).join("")}</select></div>
-          <div class="field"><label>Variável B</label><select id="cy">${Object.entries(VARS).map(([k,l])=>`<option value="${k}" ${k==="diagnostico"?"selected":""}>${l}</option>`).join("")}</select></div>
+          <div class="field"><label>Variável A</label><select id="cx">${keys.map(k=>`<option value="${k}" ${k===keys[0]?"selected":""}>${vars[k]}</option>`).join("")}</select></div>
+          <div class="field"><label>Variável B</label><select id="cy">${keys.map(k=>`<option value="${k}" ${k===secondKey?"selected":""}>${vars[k]}</option>`).join("")}</select></div>
           <button class="tbtn pri" id="runX" style="height:40px">Rodar análise</button></div>
         <div id="crossOut"></div></div>
-    </div>
-    <p style="font-size:12.5px;color:var(--muted);margin-top:14px">Base demonstrativa: 51 pacientes do TCC — marginais fiéis, associações ilustrativas.</p>`;
+    </div>`}
+    <p style="font-size:12.5px;color:var(--muted);margin-top:14px">${escapeHtml(AX.note)}</p>`;
+  document.getElementById("baseBack").onclick=()=>{CURBASE=null;renderAnalise(host);};
+  if(rows.length<2)return;
   const uni=document.getElementById("uni");uni.onchange=()=>drawUni(uni.value);drawUni(uni.value);
   document.getElementById("runX").onclick=()=>drawCross(document.getElementById("cx").value,document.getElementById("cy").value);
-  drawCross("sexo","diagnostico");
+  drawCross(keys[0],secondKey);
 }
 
 /* -------- Nova coleta (manual + voz) -------- */
-const COL={patient:{nome:"",sexo:"Masculino",raca:"Branca"},protocolId:null,selected:new Set(),auto:new Set()};
+const COL={patient:{nome:"",sexo:"Masculino",raca:"Branca"},protocolId:null,selected:new Set(),auto:new Set(),usedVoice:false};
 let REC=null;
 const SAMPLE="O paciente se queixa de falta de ar e de uma dor no peito em aperto. Teve um desmaio, está com suor frio e enjoo. É fumante, tem pressão alta e diabetes, e faz uso de aspirina.";
 /* Sinônimos e termos leigos → item clínico do protocolo (equivalência).
@@ -1253,13 +1387,13 @@ function renderColeta(host){
         <div style="padding:0 16px 16px"><button class="enter" id="finalize">✓ Finalizar coleta</button></div>
       </div>
     </div>`;
-  document.getElementById("colProto").onchange=e=>{COL.protocolId=e.target.value;COL.selected.clear();COL.auto.clear();protoNode().open=true;drawColTree();drawSel();};
+  document.getElementById("colProto").onchange=e=>{COL.protocolId=e.target.value;COL.selected.clear();COL.auto.clear();COL.usedVoice=false;protoNode().open=true;drawColTree();drawSel();};
   document.getElementById("pNome").oninput=e=>COL.patient.nome=e.target.value;
   document.getElementById("pSexo").onchange=e=>COL.patient.sexo=e.target.value;
   document.getElementById("pRaca").onchange=e=>COL.patient.raca=e.target.value;
   document.getElementById("micBtn").onclick=()=>{REC?stopVoice():startVoice();};
   document.getElementById("simBtn").onclick=simulateVoice;
-  document.getElementById("clearCol").onclick=()=>{COL.selected.clear();COL.auto.clear();setVText("…");document.getElementById("voicePanel").classList.add("hidden");drawColTree();drawSel();};
+  document.getElementById("clearCol").onclick=()=>{COL.selected.clear();COL.auto.clear();COL.usedVoice=false;setVText("…");document.getElementById("voicePanel").classList.add("hidden");drawColTree();drawSel();};
   document.getElementById("finalize").onclick=finalizeColeta;
   protoNode().open=true;drawColTree();drawSel();
 }
@@ -1305,7 +1439,9 @@ function applyTranscript(text){
   // 2) termos que já batem com o próprio rótulo do protocolo
   walk(protoNode(),n=>{const nn=normv(n.label);if(nn.length>=5&&hit(t,nn))wanted.add(nn);});
   // marca os nós correspondentes dentro do protocolo selecionado
-  walk(protoNode(),n=>{if(wanted.has(normv(n.label))&&!COL.selected.has(n.id)){COL.selected.add(n.id);COL.auto.add(n.id);let p=parentOf(n);while(p){p.open=true;p=parentOf(p);}}});
+  let marked=0;
+  walk(protoNode(),n=>{if(wanted.has(normv(n.label))&&!COL.selected.has(n.id)){COL.selected.add(n.id);COL.auto.add(n.id);marked++;let p=parentOf(n);while(p){p.open=true;p=parentOf(p);}}});
+  if(marked>0)COL.usedVoice=true;
   protoNode().open=true;drawColTree();drawSel();
 }
 function setVText(t){const el=document.getElementById("vtext");if(el)el.textContent=t||"…";}
@@ -1332,10 +1468,14 @@ function simulateVoice(){
 }
 function finalizeColeta(){
   if(!COL.selected.size){toast("Selecione ao menos um item antes de finalizar.");return;}
-  const rec={ts:Date.now(),paciente:(document.getElementById("pNome").value||"(sem nome)"),protocolo:protoNode().label,itens:[...COL.selected].map(id=>findById(TREE,id)?.label).filter(Boolean)};
+  const modo=COL.usedVoice?"voz":"manual";
+  const rec={id:"c"+Date.now()+Math.random().toString(36).slice(2,6),ts:Date.now(),
+    paciente:(document.getElementById("pNome").value||"(sem nome)"),
+    sexo:COL.patient.sexo,raca:COL.patient.raca,protocolo:protoNode().label,modo,
+    itens:[...COL.selected].map(id=>findById(TREE,id)?.label).filter(Boolean)};
   try{const a=JSON.parse(localStorage.getItem("sinpe_coletas")||"[]");a.push(rec);localStorage.setItem("sinpe_coletas",JSON.stringify(a));}catch(e){}
-  toast(`Coleta finalizada: ${rec.itens.length} itens gravados para ${rec.paciente}.`);
-  COL.selected.clear();COL.auto.clear();drawColTree();drawSel();setVText("…");
+  toast(`Coleta ${modo==="voz"?"por voz":"manual"} finalizada: ${rec.itens.length} itens de ${rec.paciente}.`);
+  COL.selected.clear();COL.auto.clear();COL.usedVoice=false;drawColTree();drawSel();setVText("…");
 }
 function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),3400);}
 
@@ -1570,15 +1710,16 @@ function exportStudyCSV(){
   toast("CSV exportado ("+STUDY.length+" casos)");
 }
 
+function countsIn(rows,f){const m=new Map();rows.forEach(p=>m.set(p[f]==null||p[f]===""?"—":p[f],(m.get(p[f]==null||p[f]===""?"—":p[f])||0)+1));return[...m.entries()].sort((a,b)=>b[1]-a[1]);}
 function drawUni(f){
-  const data=counts(f),total=PATIENTS.length,max=Math.max(...data.map(d=>d[1]));
-  const host=document.getElementById("uniChart");
-  if(f==="sexo"){let acc=0;const segs=data.map((d,i)=>{const from=acc/total*360;acc+=d[1];return `${PAL[i]} ${from}deg ${acc/total*360}deg`;}).join(",");
+  const rows=AX.rows,data=countsIn(rows,f),total=rows.length,max=Math.max(...data.map(d=>d[1]));
+  const host=document.getElementById("uniChart");if(!host)return;
+  if(f===AX.donut&&data.length<=6){let acc=0;const segs=data.map((d,i)=>{const from=acc/total*360;acc+=d[1];return `${PAL[i%PAL.length]} ${from}deg ${acc/total*360}deg`;}).join(",");
     host.innerHTML=`<div class="donut-wrap"><div class="donut" style="background:conic-gradient(${segs})"></div>
-      <div class="legend">${data.map((d,i)=>`<div><i style="background:${PAL[i]}"></i>${d[0]} <b>&nbsp;${d[1]}</b><small>${(d[1]/total*100).toFixed(1)}%</small></div>`).join("")}</div></div>`;
+      <div class="legend">${data.map((d,i)=>`<div><i style="background:${PAL[i%PAL.length]}"></i>${d[0]} <b>&nbsp;${d[1]}</b><small>${(d[1]/total*100).toFixed(1)}%</small></div>`).join("")}</div></div>`;
   }else{host.innerHTML=`<div class="bars">${data.map(d=>`<div class="bar-row"><span>${d[0]}</span>
       <div class="bar-track"><div class="bar-fill ${d[1]===0?"zero":""}" style="width:${max?d[1]/max*100:0}%"></div></div>
-      <span class="v">${d[1]}</span></div>`).join("")}</div><p style="font-size:12px;color:var(--muted);margin-top:12px">n = ${total} pacientes</p>`;}
+      <span class="v">${d[1]}</span></div>`).join("")}</div><p style="font-size:12px;color:var(--muted);margin-top:12px">n = ${total} registros</p>`;}
 }
 function lgamma(x){const g=7,c=[0.99999999999980993,676.5203681218851,-1259.1392167224028,771.32342877765313,-176.61502916214059,12.507343278686905,-0.13857109526572012,9.9843695780195716e-6,1.5056327351493116e-7];
   if(x<0.5)return Math.log(Math.PI/Math.sin(Math.PI*x))-lgamma(1-x);x-=1;let a=c[0];const t=x+g+0.5;for(let i=1;i<g+2;i++)a+=c[i]/(x+i);return 0.5*Math.log(2*Math.PI)+(x+0.5)*Math.log(t)-t+Math.log(a);}
@@ -1586,14 +1727,15 @@ function lowerReg(s,x){if(x<=0)return 0;if(x<s+1){let sum=1/s,term=sum;for(let n
   let b=x+1-s,c2=1e300,d=1/b,h=d;for(let i=1;i<200;i++){const an=-i*(i-s);b+=2;d=an*d+b;if(Math.abs(d)<1e-300)d=1e-300;c2=b+an/c2;if(Math.abs(c2)<1e-300)c2=1e-300;d=1/d;const del=d*c2;h*=del;if(Math.abs(del-1)<1e-12)break;}return 1-Math.exp(-x+s*Math.log(x)-lgamma(s))*h;}
 function chiSqP(x,df){return x<=0?1:1-lowerReg(df/2,x/2);}
 function drawCross(a,b){
-  const host=document.getElementById("crossOut");
+  const host=document.getElementById("crossOut");if(!host)return;const DS=AX.rows;
   if(a===b){host.innerHTML=`<div class="result"><div class="verdict ns">Escolha duas variáveis diferentes para cruzar.</div></div>`;return;}
-  const rows=[...new Set(PATIENTS.map(p=>p[a]))],cols=[...new Set(PATIENTS.map(p=>p[b]))];
-  const obs=rows.map(r=>cols.map(c=>PATIENTS.filter(p=>p[a]===r&&p[b]===c).length));
-  const n=PATIENTS.length,rt=obs.map(r=>r.reduce((x,y)=>x+y,0)),ct=cols.map((_,j)=>obs.reduce((s,r)=>s+r[j],0));
+  const rows=[...new Set(DS.map(p=>p[a]==null||p[a]===""?"—":p[a]))],cols=[...new Set(DS.map(p=>p[b]==null||p[b]===""?"—":p[b]))];
+  const val=(p,k)=>p[k]==null||p[k]===""?"—":p[k];
+  const obs=rows.map(r=>cols.map(c=>DS.filter(p=>val(p,a)===r&&val(p,b)===c).length));
+  const n=DS.length,rt=obs.map(r=>r.reduce((x,y)=>x+y,0)),ct=cols.map((_,j)=>obs.reduce((s,r)=>s+r[j],0));
   let chi=0;for(let i=0;i<rows.length;i++)for(let j=0;j<cols.length;j++){const e=rt[i]*ct[j]/n;if(e>0)chi+=Math.pow(obs[i][j]-e,2)/e;}
-  const df=(rows.length-1)*(cols.length-1),p=chiSqP(chi,df),sig=p<0.05;
-  host.innerHTML=`<table class="ctable"><tr><th>${VARS[a]} \\ ${VARS[b]}</th>${cols.map(c=>`<th>${c}</th>`).join("")}<th>Σ</th></tr>
+  const df=(rows.length-1)*(cols.length-1),p=df>0?chiSqP(chi,df):1,sig=p<0.05&&df>0;
+  host.innerHTML=`<table class="ctable"><tr><th>${AX.vars[a]} \\ ${AX.vars[b]}</th>${cols.map(c=>`<th>${c}</th>`).join("")}<th>Σ</th></tr>
     ${rows.map((r,i)=>`<tr><td>${r}</td>${obs[i].map(x=>`<td>${x}</td>`).join("")}<td>${rt[i]}</td></tr>`).join("")}
     <tr><td>Σ</td>${ct.map(x=>`<td>${x}</td>`).join("")}<td>${n}</td></tr></table>
     <div class="result"><div class="stat">
