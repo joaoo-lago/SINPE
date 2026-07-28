@@ -596,26 +596,54 @@ function buildSeed(){
 }
 function loadTree(){try{const s=localStorage.getItem("sinpe_tree_v3");if(s){const t=JSON.parse(s);fixIds(t);return t;}}catch(e){}return buildSeed();}
 function fixIds(n){if(!n.id)n.id=nid();else{const k=+String(n.id).replace(/\D/g,"");if(k>=uid)uid=k+1;}(n.children||[]).forEach(fixIds);}
-function saveTree(){try{localStorage.setItem("sinpe_services_v1",JSON.stringify(SERVICES));}catch(e){}}
+function saveTree(){try{localStorage.setItem("sinpe_services_v2",JSON.stringify(SERVICES));}catch(e){}}
 
 /* ---- Serviços (especialidades) ---- */
 function emptyService(name){return {id:nid(),label:name,type:"logical",selection:"multiple",media:false,open:true,children:[]};}
+/* Protocolos específicos = recorte do Mestre para cada patologia */
+function copyTree(n){return {id:nid(),label:n.label,type:n.type,selection:n.selection,media:false,open:false,children:(n.children||[]).map(copyTree)};}
+function pruneTo(node,keep){ // mantém o nó (e toda a subárvore) se o rótulo está em keep; senão, só se tiver descendente mantido
+  if(keep.has(normv(node.label))){const c=copyTree(node);c.open=false;return c;}
+  const kids=(node.children||[]).map(c=>pruneTo(c,keep)).filter(Boolean);
+  if(kids.length)return {id:nid(),label:node.label,type:node.type,selection:node.selection,media:false,open:false,children:kids};
+  return null;
+}
+const SPEC_DEFS=[
+  {nome:"Infarto agudo do miocárdio",keep:["Tabagismo","Diabetes","LDL acima da meta","HDL baixo","Hipertrigliceridemia","Obesidade","Sedentarismo","Estresse","Idade avançada","Etilismo","Hipertensão arterial","IAM em familiares < 60 e 65 anos","AVE","Procedimentos como ATC/RVM","Angina","Dispneia","Sudorese","Palpitação","Síncope","Fadiga","Extremidades frias","Taquicardia","Bradicardia","Quarta bulha","Terceira bulha","Bulhas abafadas","Pulso filiforme","Pressão jugular elevada","Estertores","Eletrocardiograma","Cineangiocoronariografia","Ecocardiograma","Cintilografia miocárdica","Perfil lipídico","Antiagregantes","Anticoagulantes","Simpaticolíticos","IECAs","BRAs","Diuréticos","Procedimentos","Não farmacológico","Infarto agudo do miocárdio"]},
+  {nome:"Hipertensão arterial sistêmica",keep:["Alimentação rica em sal","Obesidade","Sedentarismo","Etilismo","Estresse","Diabetes","LDL acima da meta","HDL baixo","Hipertrigliceridemia","Distúrbios do sono","Idade avançada","Doença renal crônica","Feocromocitoma","Hiperaldosteronismo primário","Hipertensão arterial","AVE","IAM em familiares < 60 e 65 anos","Tontura","Dispneia","Palpitação","Angina","Ictus cordis deslocado à esquerda","Quarta bulha","Taquicardia","Eletrocardiograma","Ecocardiograma","Perfil lipídico","Diuréticos","IECAs","BRAs","Bloqueadores dos Canais de Cálcio","Simpaticolíticos","Vasodilatadores Diretos","Inibidores da SGLT2","Não farmacológico","Hipertensão arterial sistêmica"]},
+  {nome:"Insuficiência Cardíaca",keep:["Hipertensão arterial","Diabetes","História prévia de IC","Etilismo","Doença de Chagas","Cardiopatia","Exposição a substâncias cardiotóxicas","Idade avançada","Tabagismo","Insuficiência cardíaca","IAM em familiares < 60 e 65 anos","Dispneia","Ortopneia","Dispneia paroxística noturna","Fadiga","Edema","Noctúria","Ganho de peso","Perda de apetite","Dor abdominal","Diminuição da capacidade de exercício","Palpitação","Síncope","Ascite","Anasarca","Aumento ou inchaço da cintura abdominal","Edema de membros inferiores","Extremidades frias","Hepatomegalia","Pressão jugular elevada","Pulso filiforme","Taquipneia","Ausculta Cardíaca","Tórax","Eletrocardiograma","Ecocardiograma","Ressonância magnética","Diuréticos","IECAs","BRAs","Simpaticolíticos","Inibidores da SGLT2","Anticoagulantes","Não farmacológico","Procedimentos","Insuficiência Cardíaca"]},
+  {nome:"Arritmias",keep:["Distúrbios do sono","Etilismo","Estresse","Hipertensão arterial","Diabetes","Idade avançada","Exposição a substâncias cardiotóxicas","Doença de Chagas","Cardiopatia","IAM em familiares < 60 e 65 anos","Palpitação","Tontura","Síncope","Dispneia","Fadiga","Angina","Taquicardia","Bradicardia","Pulso filiforme","Ausculta Cardíaca","Eletrocardiograma","Ecocardiograma","Antiarrítmicos","Anticoagulantes","Bloqueadores dos Canais de Cálcio","Simpaticolíticos","Procedimentos","Arritmias"]},
+  {nome:"Doença Arterial Coronariana",keep:["Tabagismo","Hipertensão arterial","Diabetes","LDL acima da meta","HDL baixo","Hipertrigliceridemia","Obesidade","Sedentarismo","Estresse","Idade avançada","Etilismo","IAM em familiares < 60 e 65 anos","AVE","Procedimentos como ATC/RVM","Angina","Dispneia","Sudorese","Palpitação","Fadiga","Quarta bulha","Terceira bulha","Taquicardia","Extremidades frias","Eletrocardiograma","Teste ergométrico","Cineangiocoronariografia","Ecocardiograma de estresse","Cintilografia miocárdica","Ecocardiograma","Perfil lipídico","Antiagregantes","Anticoagulantes","Simpaticolíticos","IECAs","BRAs","Bloqueadores dos Canais de Cálcio","Procedimentos","Não farmacológico","Doença Arterial Coronariana"]},
+  {nome:"Fibrilação atrial",keep:["Hipertensão arterial","Idade avançada","Etilismo","Distúrbios do sono","Diabetes","Cardiopatia","Doença de Chagas","Estresse","AVE","IAM em familiares < 60 e 65 anos","Palpitação","Fadiga","Tontura","Dispneia","Síncope","Taquicardia","Bradicardia","Pulso filiforme","Ausculta Cardíaca","Eletrocardiograma","Ecocardiograma","Anticoagulantes","Antiarrítmicos","Bloqueadores dos Canais de Cálcio","Simpaticolíticos","Procedimentos","Fibrilação atrial"]},
+];
+function buildSpecifics(master){
+  const comuns=["Retorno","Mudanças no estilo de vida"];
+  return SPEC_DEFS.map(d=>{
+    const keep=new Set([...d.keep,...comuns].map(normv));
+    const t=pruneTo(master,keep)||emptyService(d.nome);
+    t.label=d.nome;t.open=false;
+    return t;
+  });
+}
+function buildCardioTree(){
+  const master=buildSeed();
+  return {id:nid(),label:"Cardiologia",type:"logical",selection:"multiple",media:false,open:true,children:[master,...buildSpecifics(master)]};
+}
 function buildServices(){
-  // Cardiologia já vem com o Protocolo Mestre; os demais serviços entram vazios
-  let cardio;try{const s=localStorage.getItem("sinpe_tree_v3");cardio=s?JSON.parse(s):buildSeed();}catch(e){cardio=buildSeed();}
-  fixIds(cardio);
+  // Cardiologia = Protocolo Mestre + protocolos específicos (recortes por patologia)
   return [
-    {id:"cardio",nome:"Cardiologia",tree:cardio},
+    {id:"cardio",nome:"Cardiologia",tree:buildCardioTree()},
     {id:"ped",nome:"Pediatria",tree:emptyService("Pediatria")},
     {id:"cir",nome:"Clínica Cirúrgica",tree:emptyService("Clínica Cirúrgica")},
     {id:"go",nome:"Ginecologia e Obstetrícia",tree:emptyService("Ginecologia e Obstetrícia")},
   ];
 }
 function loadServices(){
-  try{const s=localStorage.getItem("sinpe_services_v1");if(s){const arr=JSON.parse(s);arr.forEach(sv=>fixIds(sv.tree));return arr;}}catch(e){}
+  try{const s=localStorage.getItem("sinpe_services_v2");if(s){const arr=JSON.parse(s);arr.forEach(sv=>fixIds(sv.tree));return arr;}}catch(e){}
   return buildServices();
 }
 function cardioTree(){const c=(SERVICES||[]).find(s=>s.id==="cardio");return c?c.tree:TREE;}
+function masterProto(){const c=cardioTree();return (c.children||[]).find(x=>/^Protocolo Mestre/.test(x.label))||(c.children||[])[0]||c;}
 
 let TREE=null, VIEW=null, SELECTED=null, FILTER="", justToggled=null;
 let SERVICES=null, SVC=null;
@@ -656,8 +684,8 @@ function renderAdmin(v){
             ${SERVICES.map(s=>`<option value="${s.id}" ${s.id===SVC.id?"selected":""}>🏥 ${escapeHtml(s.nome)}</option>`).join("")}
           </select>
           <select id="protoSel" title="Protocolo">
-            <option value="__master">🫀 ${escapeHtml(TREE.label)} (completo)</option>
-            ${specifics.map(s=>`<option value="${s.id}">— ${escapeHtml(s.label)}</option>`).join("")}
+            <option value="__master">📚 ${escapeHtml(TREE.label)} — serviço inteiro</option>
+            ${specifics.map(s=>`<option value="${s.id}">${/^Protocolo Mestre/.test(s.label)?"🫀 ":"📋 "}${escapeHtml(s.label)}</option>`).join("")}
           </select>
           <input id="search" placeholder="🔍 Buscar item na árvore…">
           <button class="tbtn pri" id="newProto" style="white-space:nowrap">➕ Novo protocolo</button>
@@ -696,7 +724,7 @@ function renderAdmin(v){
   document.getElementById("del").onclick=deleteNode;
   document.getElementById("expandAll").onclick=()=>{walk(VIEW,n=>n.open=true);drawTree();};
   document.getElementById("collapseAll").onclick=()=>{walk(VIEW,n=>{if(n!==VIEW)n.open=false;});drawTree();};
-  document.getElementById("reset").onclick=()=>{if(confirm("Restaurar este serviço ao estado original? As alterações locais deste serviço serão perdidas.")){SVC.tree=SVC.id==="cardio"?buildSeed():emptyService(SVC.nome);TREE=SVC.tree;VIEW=TREE;SELECTED=null;FILTER="";saveTree();renderAdmin(document.getElementById("view"));}};
+  document.getElementById("reset").onclick=()=>{if(confirm("Restaurar este serviço ao estado original? As alterações locais deste serviço serão perdidas.")){SVC.tree=SVC.id==="cardio"?buildCardioTree():emptyService(SVC.nome);TREE=SVC.tree;VIEW=TREE;SELECTED=null;FILTER="";saveTree();renderAdmin(document.getElementById("view"));}};
   drawTree();drawInsp();
 }
 function findById(n,id){if(n.id===id)return n;for(const c of n.children||[]){const r=findById(c,id);if(r)return r;}return null;}
@@ -951,7 +979,7 @@ const PAL=["var(--accent)","color-mix(in srgb,var(--accent) 55%,var(--surface-2)
 function counts(f){const m=new Map();PATIENTS.forEach(p=>m.set(p[f],(m.get(p[f])||0)+1));return[...m.entries()].sort((a,b)=>b[1]-a[1]);}
 let USERTAB="coleta";
 function renderResearcher(v){
-  if(!COL.protocolId||!findById(TREE,COL.protocolId))COL.protocolId=TREE.id;
+  if(!COL.protocolId||!findById(TREE,COL.protocolId))COL.protocolId=((TREE.children||[])[0]||TREE).id;
   v.innerHTML=`
     <div class="page-head"><div class="eyebrow">Pesquisador</div>
       <h2>Área do pesquisador</h2>
@@ -1309,15 +1337,16 @@ function renderColeta(host){
   if(empty){
     host.innerHTML=`<div class="panel"><div class="protobar">${svcSelHtml}</div>
       <div class="sel-empty" style="padding:34px 18px">O serviço <b>${escapeHtml(SVC.nome)}</b> ainda não tem protocolos cadastrados.<br>Selecione <b>Cardiologia</b> para coletar agora, ou peça ao administrador para cadastrar um protocolo neste serviço.</div></div>`;
-    document.getElementById("colSvc").onchange=e=>{SVC=SERVICES.find(s=>s.id===e.target.value)||SERVICES[0];TREE=SVC.tree;COL.protocolId=TREE.id;COL.selected.clear();COL.auto.clear();COL.negated.clear();COL.usedVoice=false;renderColeta(host);};
+    document.getElementById("colSvc").onchange=e=>{SVC=SERVICES.find(s=>s.id===e.target.value)||SERVICES[0];TREE=SVC.tree;COL.protocolId=((TREE.children||[])[0]||TREE).id;COL.selected.clear();COL.auto.clear();COL.negated.clear();COL.usedVoice=false;renderColeta(host);};
     return;
   }
-  const opts=[TREE,...(TREE.children||[])]; // Protocolo (raiz) + suas seções, se quiser coletar por seção
+  const opts=(TREE.children||[]); // Protocolo Mestre + protocolos específicos do serviço
+  if(!opts.some(o=>o.id===COL.protocolId))COL.protocolId=(opts[0]||TREE).id;
   host.innerHTML=`
     <div class="coleta-grid">
       <div class="panel">
         <div class="protobar">${svcSelHtml}<select id="colProto" title="Protocolo">
-          ${opts.map((s,i)=>`<option value="${s.id}" ${s.id===COL.protocolId?"selected":""}>${i===0?"🫀 ":"— "}${escapeHtml(s.label)}</option>`).join("")}</select></div>
+          ${opts.map(s=>`<option value="${s.id}" ${s.id===COL.protocolId?"selected":""}>${/^Protocolo Mestre/.test(s.label)?"🫀 ":"📋 "}${escapeHtml(s.label)}</option>`).join("")}</select></div>
         <div class="patient">
           <div class="field"><label>Paciente</label><input id="pNome" placeholder="Nome do paciente" value="${escapeHtml(COL.patient.nome)}"></div>
           <div class="field"><label>Sexo</label><select id="pSexo">${["Masculino","Feminino","Indefinido"].map(o=>`<option ${COL.patient.sexo===o?"selected":""}>${o}</option>`).join("")}</select></div>
@@ -1498,7 +1527,7 @@ const CASES=[
    gabarito:["Palpitação","Fadiga","Tontura","Hipertensão arterial","Taquicardia","Eletrocardiograma","Fibrilação atrial","Varfarina","Diltiazem","Cardioversão elétrica"]},
 ];
 const BM={caseIdx:0,active:null,sel:new Set(),auto:new Set(),t0:0,tick:null,results:{manual:null,voz:null}};
-function bmProto(){return cardioTree();} // o comparativo é sempre sobre o Protocolo Mestre de Cardiologia
+function bmProto(){return masterProto();} // o comparativo é sempre sobre o Protocolo Mestre de Cardiologia
 function bmMark(text){ // reconstrói a seleção a partir da transcrição completa atual (negação some ao chegar a resposta)
   const t=normv(text);const root=bmProto();const secIds=new Set((root.children||[]).map(c=>c.id));
   const {present}=scanTranscript(t,root);
