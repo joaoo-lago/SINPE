@@ -596,38 +596,465 @@ function buildSeed(){
 }
 function loadTree(){try{const s=localStorage.getItem("sinpe_tree_v3");if(s){const t=JSON.parse(s);fixIds(t);return t;}}catch(e){}return buildSeed();}
 function fixIds(n){if(!n.id)n.id=nid();else{const k=+String(n.id).replace(/\D/g,"");if(k>=uid)uid=k+1;}(n.children||[]).forEach(fixIds);}
-function saveTree(){try{localStorage.setItem("sinpe_services_v2",JSON.stringify(SERVICES));}catch(e){}}
+function saveTree(){try{localStorage.setItem("sinpe_services_v3",JSON.stringify(SERVICES));}catch(e){}}
 
 /* ---- Serviços (especialidades) ---- */
 function emptyService(name){return {id:nid(),label:name,type:"logical",selection:"multiple",media:false,open:true,children:[]};}
-/* Protocolos específicos = recorte do Mestre para cada patologia */
-function copyTree(n){return {id:nid(),label:n.label,type:n.type,selection:n.selection,media:false,open:false,children:(n.children||[]).map(copyTree)};}
-function pruneTo(node,keep){ // mantém o nó (e toda a subárvore) se o rótulo está em keep; senão, só se tiver descendente mantido
-  if(keep.has(normv(node.label))){const c=copyTree(node);c.open=false;return c;}
-  const kids=(node.children||[]).map(c=>pruneTo(c,keep)).filter(Boolean);
-  if(kids.length)return {id:nid(),label:node.label,type:node.type,selection:node.selection,media:false,open:false,children:kids};
-  return null;
-}
-const SPEC_DEFS=[
-  {nome:"Infarto agudo do miocárdio",keep:["Tabagismo","Diabetes","LDL acima da meta","HDL baixo","Hipertrigliceridemia","Obesidade","Sedentarismo","Estresse","Idade avançada","Etilismo","Hipertensão arterial","IAM em familiares < 60 e 65 anos","AVE","Procedimentos como ATC/RVM","Angina","Dispneia","Sudorese","Palpitação","Síncope","Fadiga","Extremidades frias","Taquicardia","Bradicardia","Quarta bulha","Terceira bulha","Bulhas abafadas","Pulso filiforme","Pressão jugular elevada","Estertores","Eletrocardiograma","Cineangiocoronariografia","Ecocardiograma","Cintilografia miocárdica","Perfil lipídico","Antiagregantes","Anticoagulantes","Simpaticolíticos","IECAs","BRAs","Diuréticos","Procedimentos","Não farmacológico","Infarto agudo do miocárdio"]},
-  {nome:"Hipertensão arterial sistêmica",keep:["Alimentação rica em sal","Obesidade","Sedentarismo","Etilismo","Estresse","Diabetes","LDL acima da meta","HDL baixo","Hipertrigliceridemia","Distúrbios do sono","Idade avançada","Doença renal crônica","Feocromocitoma","Hiperaldosteronismo primário","Hipertensão arterial","AVE","IAM em familiares < 60 e 65 anos","Tontura","Dispneia","Palpitação","Angina","Ictus cordis deslocado à esquerda","Quarta bulha","Taquicardia","Eletrocardiograma","Ecocardiograma","Perfil lipídico","Diuréticos","IECAs","BRAs","Bloqueadores dos Canais de Cálcio","Simpaticolíticos","Vasodilatadores Diretos","Inibidores da SGLT2","Não farmacológico","Hipertensão arterial sistêmica"]},
-  {nome:"Insuficiência Cardíaca",keep:["Hipertensão arterial","Diabetes","História prévia de IC","Etilismo","Doença de Chagas","Cardiopatia","Exposição a substâncias cardiotóxicas","Idade avançada","Tabagismo","Insuficiência cardíaca","IAM em familiares < 60 e 65 anos","Dispneia","Ortopneia","Dispneia paroxística noturna","Fadiga","Edema","Noctúria","Ganho de peso","Perda de apetite","Dor abdominal","Diminuição da capacidade de exercício","Palpitação","Síncope","Ascite","Anasarca","Aumento ou inchaço da cintura abdominal","Edema de membros inferiores","Extremidades frias","Hepatomegalia","Pressão jugular elevada","Pulso filiforme","Taquipneia","Ausculta Cardíaca","Tórax","Eletrocardiograma","Ecocardiograma","Ressonância magnética","Diuréticos","IECAs","BRAs","Simpaticolíticos","Inibidores da SGLT2","Anticoagulantes","Não farmacológico","Procedimentos","Insuficiência Cardíaca"]},
-  {nome:"Arritmias",keep:["Distúrbios do sono","Etilismo","Estresse","Hipertensão arterial","Diabetes","Idade avançada","Exposição a substâncias cardiotóxicas","Doença de Chagas","Cardiopatia","IAM em familiares < 60 e 65 anos","Palpitação","Tontura","Síncope","Dispneia","Fadiga","Angina","Taquicardia","Bradicardia","Pulso filiforme","Ausculta Cardíaca","Eletrocardiograma","Ecocardiograma","Antiarrítmicos","Anticoagulantes","Bloqueadores dos Canais de Cálcio","Simpaticolíticos","Procedimentos","Arritmias"]},
-  {nome:"Doença Arterial Coronariana",keep:["Tabagismo","Hipertensão arterial","Diabetes","LDL acima da meta","HDL baixo","Hipertrigliceridemia","Obesidade","Sedentarismo","Estresse","Idade avançada","Etilismo","IAM em familiares < 60 e 65 anos","AVE","Procedimentos como ATC/RVM","Angina","Dispneia","Sudorese","Palpitação","Fadiga","Quarta bulha","Terceira bulha","Taquicardia","Extremidades frias","Eletrocardiograma","Teste ergométrico","Cineangiocoronariografia","Ecocardiograma de estresse","Cintilografia miocárdica","Ecocardiograma","Perfil lipídico","Antiagregantes","Anticoagulantes","Simpaticolíticos","IECAs","BRAs","Bloqueadores dos Canais de Cálcio","Procedimentos","Não farmacológico","Doença Arterial Coronariana"]},
-  {nome:"Fibrilação atrial",keep:["Hipertensão arterial","Idade avançada","Etilismo","Distúrbios do sono","Diabetes","Cardiopatia","Doença de Chagas","Estresse","AVE","IAM em familiares < 60 e 65 anos","Palpitação","Fadiga","Tontura","Dispneia","Síncope","Taquicardia","Bradicardia","Pulso filiforme","Ausculta Cardíaca","Eletrocardiograma","Ecocardiograma","Anticoagulantes","Antiarrítmicos","Bloqueadores dos Canais de Cálcio","Simpaticolíticos","Procedimentos","Fibrilação atrial"]},
-];
-function buildSpecifics(master){
-  const comuns=["Retorno","Mudanças no estilo de vida"];
-  return SPEC_DEFS.map(d=>{
-    const keep=new Set([...d.keep,...comuns].map(normv));
-    const t=pruneTo(master,keep)||emptyService(d.nome);
-    t.label=d.nome;t.open=false;
-    return t;
+/* Protocolos específicos: cada um é uma árvore própria no formato numerado */
+function parseNumbered(text){
+  let root=null;const stack={};const singleParents=new Set();let minD=Infinity;
+  text.split("\n").forEach(raw=>{
+    const m=raw.match(/^\s*(\d+)\s*\]\.?\s*(.*)$/); if(!m)return;
+    const depth=+m[1]; let rest=m[2]; let single=false;
+    if(/\]\s*u\s*$/i.test(rest)){rest=rest.replace(/\]\s*u\s*$/i,"");single=true;}
+    rest=rest.replace(/^\d+\s*\]\s*/,"").replace(/\]+\s*$/,"").trim(); if(!rest)return;
+    const node={id:nid(),label:rest,type:"logical",selection:"multiple",media:false,open:false,children:[]};
+    minD=Math.min(minD,depth);
+    if(root===null){root=node;stack[depth]=node;return;}
+    let pd=depth-1,parent=null;
+    while(pd>=minD-1){if(stack[pd]){parent=stack[pd];break;}pd--;}
+    if(!parent)parent=root;
+    parent.children.push(node);stack[depth]=node;
+    Object.keys(stack).forEach(k=>{if(+k>depth)delete stack[k];});
+    if(single)singleParents.add(parent.id);
   });
+  if(!root)return null;
+  (function w(n){if(singleParents.has(n.id))n.selection="single";(n.children||[]).forEach(w);})(root);
+  root.open=false;return root;
+}
+const SPEC_OUTLINES=[
+`1]Infarto Agudo do Miocárdio
+2]Anamnese
+3]DAC conhecida
+4]Com intervenção prévia
+4]Sem intervenção prévia
+3]Fatores de risco
+4]História familiar
+5]IAM <60 e 65 anos
+5]AVE
+5]ATC/RVM
+4]LDL acima da meta
+4]Hipertrigliceridemia
+4]Hipertensão arterial
+5]Pré hipertenso]U
+5]HA estágio 1]U
+5]HA estágio 2]U
+5]HA estágio 3]U
+4]Tabagismo
+4]Obesidade
+4]Diabetes
+4]Estresse
+4]Sedentarismo
+4]Distúrbios do sono
+3]Fator desencadeante
+4]Exercício
+4]Frio
+4]Estresse emocional
+3]Angina
+4]Tipo
+5]Estável
+5]Instável
+4]Localização
+5]Retroesternal
+5]Braço esquerdo
+5]Dorso
+5]Pescoço
+5]Mandíbula
+5]Epigástrio
+5]Braço direito
+4]Caráter da dor
+5]Aperto]U
+5]Peso]U
+5]Sufocante]U
+5]Queimação]U
+4]Intensidade
+5]Leve
+5]Moderada
+5]Intensa
+5]Intolerável
+3]Sintomas associados
+4]Dispneia
+4]Fraqueza
+4]Síncope
+4]Febre
+5]Febrícula (37,3 a 37,8 C)]U
+5]Febre (mais de 37,8 C)]U
+5]Febre alta (acima de 39 C)]U
+4]Náuseas
+4]Vômitos
+4]Sudorese
+3]Lesão relacionada com isquemia
+4]Taquiarritmias
+4]Bradiarritmias
+4]Dissecção aórtica
+4]Cardiomiopatia hipertrófica
+4]Choque hipovolêmico
+4]Choque cardiogênico
+4]Insuficiência respiratória grave
+2]Exame físico
+3]Tórax
+4]Frequência respiratória elevada
+4]Respiração de Cheyne-Stokes
+4]Estertores
+4]Sibilos difusos
+4]Hemoptise
+3]Ausculta Cardíaca
+4]Taquicardia
+4]Bradicardia
+4]Abafamento da primeira bulha
+4]Abafamento da segunda bulha
+4]Primeira bulha inaudível
+4]Terceira bulha
+4]Quarta bulha
+4]Sopro sistólico
+5]Transitórios]U
+5]Persistentes]U
+4]Atritos pericárdicos
+2]Tratamento
+3]Ácido acetilsalicílico
+3]Clopidogrel
+3]Ticagrelor
+3]Nitratos
+3]Nitroglicerina
+3]Betabloqueadores
+3]O2
+3]Fibrinólise
+3]Revascularização do miocárdio
+3]Heparina
+2]Retorno
+3]Melhora total]U
+3]Melhora parcial]U
+3]Inalterado]U
+3]Piora]U`,
+`1]Doença Arterial Coronariana
+2]Anamnese
+3]Fatores de risco
+4]História familiar
+5]IAM <60 e 65 anos
+5]AVE
+5]ATC/RVM
+4]LDL acima da meta
+4]HDL baixo
+4]Hipertrigliceridemia
+4]Hipertensão arterial
+5]Pré hipertenso (130-139 / 85-89 mmHg)]U
+5]HA estágio 1 (140-159 / 90-99 mmHg)]U
+5]HA estágio 2 (160-179 / 100-109 mmHg)]U
+5]HA estágio 3 (maior que 180 ou 110 mmHg)]U
+4]Dislipidemia
+4]Tabagismo
+4]Obesidade
+4]Diabetes
+4]Estresse
+2]Manifestações clínicas
+3]Angina estável
+3]Angina instável
+3]Dor
+4]Localização
+5]Retroesternal
+5]Braço esquerdo
+5]Dorso
+5]Pescoço
+5]Mandíbula
+5]Epigástrio
+5]Braço direito
+4]Tipo
+5]Aperto]U
+5]Peso]U
+5]Sufocante]U
+5]Queimação]U
+3]Síncope
+3]Bradicardia
+3]Taquicardia
+3]Sopro de insuficiência mitral
+3]Dispneia
+3]Fadiga
+3]Eructações
+3]Sudorese
+3]Quarta bulha
+2]Complicações
+3]Arritmias
+3]Parada cardíaca
+3]Infarto agudo do miocárdio
+3]Cardiomiopatia isquêmica
+3]Insuficiência cardíaca
+2]Tratamento
+3]Controle dos fatores de risco
+3]Ácido acetilsalicílico
+3]Clopidogrel
+3]Ticagrelor
+3]Nitratos
+3]Nitroglicerina
+3]Betabloqueadores
+3]Inibidores de ECA
+3]Estatinas
+3]Revascularização do miocárdio
+2]Retorno
+3]Melhora total]U
+3]Melhora parcial]U
+3]Inalterado]U
+3]Piora]U`,
+`1]Hipertensão Arterial
+2]Anamnese
+3]Fatores de risco
+4]História familiar
+5]IAM <60 e 65 anos
+5]AVE
+5]ATC/RVM
+4]LDL acima da meta
+4]Hipertrigliceridemia
+4]Gravidez
+4]Tabagismo
+4]Obesidade
+4]Diabetes
+4]Estresse
+4]Sedentarismo
+4]Distúrbios do sono
+4]Alimentação rica em sal
+3]Feocromocitoma
+3]Doença renal crônica
+3]Hipertensão renovascular
+3]Hiperaldosteronismo primário
+3]Síndrome de Liddle
+3]Complicações
+4]Hipertrofia de ventrículo esquerdo
+4]AVC
+4]Encefalopatia hipertensiva
+4]Nefropatia hipertensiva
+4]Retinopatia hipertensiva
+3]Classificação
+4]Pré hipertenso]U
+4]HA estágio 1]U
+4]HA estágio 2]U
+4]HA estágio 3]U
+2]Tratamento
+3]Diuréticos
+4]Furosemida
+4]Hidroclorotiazida
+4]Clortalidona
+4]Indapamida
+4]Amilorida
+4]Triantereno
+4]Espironolactona
+4]Eplerenona
+3]Simpaticolíticos
+4]Alfametildopa
+4]Clonidina
+4]Guanabenzo
+4]Doxazosina
+4]Prazosina
+4]Terazosina
+4]Atenolol
+4]Acebutolol
+4]Bisoprolol
+4]Propranolol
+4]Carvedilol
+4]Metoprolol
+3]Vasodilatadores diretos
+4]Hidralazina
+4]Minoxidil
+4]Nitroprussiato de sódio
+4]Nitroglicerina
+3]Bloqueadores dos canais de cálcio
+4]Verapamil
+4]Diltiazem
+4]Anlodipino
+4]Nifedipino
+3]IECAs
+4]Enalapril
+4]Captopril
+3]BRAs
+4]Losartana
+4]Valsartana
+4]Candesartana
+4]Telmisartana
+4]Olmesartana
+2]Retorno
+3]Melhora total]U
+3]Melhora parcial]U
+3]Inalterado]U
+3]Piora]U`,
+`1]Arritmias não fibrilação atrial
+2]Anamnese
+3]Classificação
+4]Taquicardia]U
+5]Flutter atrial]U
+5]Taquicardia ventricular]U
+4]Bradicardia]U
+5]Bradicardia sinusal]U
+5]Bloqueio cardíaco]U
+3]Fatores de risco
+4]Idade avançada
+4]Pressão alta
+4]Diabetes
+4]Outras cardiopatias prévias
+4]Histórico familiar
+4]Obesidade
+4]Sedentarismo
+4]Etilismo
+4]Estresse
+4]Proteína C reativa e homocisteína
+3]Sintomas
+4]Palpitação
+4]Sudorese
+4]Tontura
+4]Angina
+4]Dispneia
+4]Síncope
+2]Diagnóstico
+3]ECG
+3]Holter de 24h
+3]Teste ergométrico
+3]RM do coração
+2]Tratamento
+3]Medicamentoso
+4]Flecainida, propafenona
+4]Betabloqueadores
+4]Amiodarona, dronedarona, sotalol
+4]Bloqueadores canais de cálcio
+4]Digoxina
+3]Cardioversão elétrica
+3]Ablação por cateter
+3]Marcapasso, desfibrilador
+3]Mudanças estilos de vida
+3]Cirurgia
+2]Retorno
+3]Melhora total]U
+3]Melhora parcial]U
+3]Inalterado]U
+3]Piora]U`,
+`1]Fibrilação atrial
+2]Anamnese
+3]Classificação
+4]Primária]U
+4]Secundária]U
+5]HAS
+5]Cardiopatia isquêmica
+5]Valvopatia
+5]Cardiomiopatia dilatada
+5]Endocrinopatia
+5]Cirurgia cardíaca
+3]Apresentação clínica
+4]Paroxística]U
+4]Persistente]U
+4]De longa duração]U
+3]Sintomas
+4]Palpitação
+4]Sudorese
+4]Tontura
+4]Angina
+4]Dispneia
+4]Síncope
+2]Diagnóstico
+3]Exame físico
+3]ECG com intervalo R-R irregular
+2]Tratamento
+3]Farmacológico
+4]Anticoagulantes
+5]NOACs
+5]Varfarina
+6]RNI fora da meta
+4]Betabloqueadores
+4]Amiodarona
+4]Propafenona
+4]Quinidina
+4]Disopiramida
+4]Procainamida
+3]Não farmacológico
+4]Cardioversão elétrica
+4]Ablação por radiofrequência
+4]Cirurgia
+2]Retorno
+3]Melhora total]U
+3]Melhora parcial]U
+3]Inalterado]U
+3]Piora]U`,
+`1]Insuficiência Cardíaca
+2]Anamnese
+3]Classe funcional NYHA
+4]I]U
+4]II]U
+4]III]U
+4]IV]U
+3]Classificação
+4]Anterógrada
+4]Retrógrada (congestiva)
+4]Direita
+4]Esquerda
+3]Sintomas
+4]Fadiga
+4]Respiração curta
+4]Dispneia
+4]Taquipneia
+4]Tosse
+4]Diminuição da capacidade de exercício
+4]Ortopneia
+4]Dispneia paroxística noturna
+4]Noctúria
+4]Ganho ou perda de peso
+4]Edema
+4]Aumento ou inchaço da cintura abdominal
+4]Dor abdominal
+4]Perda de apetite
+4]Respiração de Cheyne-Stokes
+4]Sonolência
+3]História mórbida pregressa
+4]História prévia de IC
+4]Cardiopatia
+4]Presença de fatores de risco
+4]Doença viral recente
+4]HIV
+4]Doença de Chagas
+4]História familiar de IC
+4]Exposição a substâncias cardiotóxicas
+2]Exame físico
+3]Taquicardia
+3]Extrassístole
+3]Pulso filiforme
+3]Taquipneia
+3]Extremidades frias
+3]Pressão venosa jugular elevada
+3]Bulhas hipofonéticas
+3]Ruídos adventícios à ausculta
+3]Ictus cordis deslocado à esquerda
+3]Terceira bulha
+3]Quarta bulha
+3]Sopro regurgitante mitral ou tricúspide
+3]Hepatomegalia
+3]Ascite
+3]Edema de membros inferiores
+3]Anasarca
+2]Exames
+3]Radiografia de tórax
+3]ECG
+3]Testes bioquímicos
+3]Biomarcadores
+2]Tratamento
+3]Não farmacológico
+3]Farmacológico
+4]IECA
+4]Inibidores da SGLT2
+4]BRA (Sacubitril-Valsartana)
+4]BRA
+4]Digitálicos
+4]Diuréticos
+4]BCC
+4]Betabloqueador
+4]Anticoagulantes
+4]Antiarrítmicos
+4]Cirúrgico
+2]Retorno
+3]Melhora total]U
+3]Melhora parcial]U
+3]Inalterado]U
+3]Piora]U`,
+];
+function buildSpecifics(){
+  return SPEC_OUTLINES.map((o,i)=>parseNumbered(o)||emptyService("Protocolo específico "+(i+1)));
 }
 function buildCardioTree(){
   const master=buildSeed();
-  return {id:nid(),label:"Cardiologia",type:"logical",selection:"multiple",media:false,open:true,children:[master,...buildSpecifics(master)]};
+  return {id:nid(),label:"Cardiologia",type:"logical",selection:"multiple",media:false,open:true,children:[master,...buildSpecifics()]};
 }
 function buildServices(){
   // Cardiologia = Protocolo Mestre + protocolos específicos (recortes por patologia)
@@ -639,7 +1066,7 @@ function buildServices(){
   ];
 }
 function loadServices(){
-  try{const s=localStorage.getItem("sinpe_services_v2");if(s){const arr=JSON.parse(s);arr.forEach(sv=>fixIds(sv.tree));return arr;}}catch(e){}
+  try{const s=localStorage.getItem("sinpe_services_v3");if(s){const arr=JSON.parse(s);arr.forEach(sv=>fixIds(sv.tree));return arr;}}catch(e){}
   return buildServices();
 }
 function cardioTree(){const c=(SERVICES||[]).find(s=>s.id==="cardio");return c?c.tree:TREE;}
