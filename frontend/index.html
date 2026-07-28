@@ -221,7 +221,7 @@
   .tab:hover{color:var(--ink)}
   .tab[aria-pressed="true"]{color:var(--accent-ink);border-bottom-color:var(--accent)}
   .coleta-grid{display:grid;grid-template-columns:1fr 330px;gap:18px;align-items:start}
-  .patient{display:grid;grid-template-columns:1fr 130px 130px;gap:11px;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .patient{display:grid;grid-template-columns:1.5fr 76px 1.2fr 116px 116px;gap:11px;padding:14px 16px;border-bottom:1px solid var(--line)}
   .patient .field{margin:0}
   .captmode{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line)}
   .captmode>span{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
@@ -1451,7 +1451,7 @@ function renderColetas(host){
             <div class="col-twist">${open?"▾":"▸"}</div>
             <div class="col-main">
               <div class="col-name">${escapeHtml(c.paciente||"(sem nome)")} ${badge(c.modo)}</div>
-              <div class="col-sub">${escapeHtml(c.protocolo||"—")} · ${(c.itens||[]).length} itens · ${escapeHtml(c.sexo||"—")}${c.raca?" · "+escapeHtml(c.raca):""} · ${fmt(c.ts)}</div>
+              <div class="col-sub">${escapeHtml(c.protocolo||"—")} · ${(c.itens||[]).length} itens · ${escapeHtml(c.sexo||"—")}${c.idade?" · "+escapeHtml(String(c.idade))+" anos":""}${c.profissao?" · "+escapeHtml(c.profissao):""}${c.raca?" · "+escapeHtml(c.raca):""} · ${fmt(c.ts)}</div>
             </div>
             <button class="col-del" data-del="${id}" title="Apagar esta coleta">✕</button>
           </div>
@@ -1467,7 +1467,8 @@ function renderColetas(host){
 
 /* =========== ESTATÍSTICAS: bases de dados (TCC + bases criadas das coletas) =========== */
 const TCC_VARS={sexo:"Sexo",faixa:"Faixa etária",diagnostico:"Diagnóstico",farmaco:"Classe de fármaco"};
-const COL_VARS={sexo:"Sexo",raca:"Raça",protocolo:"Protocolo",modo:"Método de coleta"};
+const COL_VARS={sexo:"Sexo",faixa:"Faixa etária",profissao:"Profissão",raca:"Raça",protocolo:"Protocolo",modo:"Método de coleta"};
+function faixaEtaria(idade){const n=parseInt(idade,10);if(!n&&n!==0)return "—";if(n<18)return "0–17";if(n<30)return "18–29";if(n<45)return "30–44";if(n<60)return "45–59";if(n<75)return "60–74";return "75+";}
 let AX={rows:[],vars:{},nome:"",note:"",donut:"sexo"}; // contexto de análise ativo
 let CURBASE=null; // null = lista de bases; senão base aberta
 function loadBases(){try{return JSON.parse(localStorage.getItem("sinpe_bases")||"[]");}catch(e){return[];}}
@@ -1510,7 +1511,7 @@ function createBaseFromColetas(host){
   if(!cs.length){toast("Não há coletas para montar uma base. Faça coletas primeiro.");return;}
   const nome=prompt("Nome da nova base de estatística:","Coletas — "+new Date().toLocaleDateString("pt-BR"));
   if(nome===null)return;
-  const rows=cs.map(c=>({sexo:c.sexo||"—",raca:c.raca||"—",protocolo:c.protocolo||"—",modo:c.modo==="voz"?"Por voz":"Manual"}));
+  const rows=cs.map(c=>({sexo:c.sexo||"—",faixa:faixaEtaria(c.idade),profissao:(c.profissao||"—"),raca:c.raca||"—",protocolo:c.protocolo||"—",modo:c.modo==="voz"?"Por voz":"Manual"}));
   const base={id:"b"+Date.now(),nome:(nome.trim()||"Base sem nome"),ts:Date.now(),rows};
   const all=loadBases();all.push(base);saveBases(all);
   toast("Base criada com "+rows.length+" coletas.");renderAnalise(host);
@@ -1550,7 +1551,7 @@ function renderAnalysisUI(host){
 }
 
 /* -------- Nova coleta (manual + voz) -------- */
-const COL={patient:{nome:"",sexo:"Masculino",raca:"Branca"},protocolId:null,selected:new Set(),auto:new Set(),usedVoice:false,negated:new Set()};
+const COL={patient:{nome:"",idade:"",profissao:"",sexo:"Masculino",raca:"Branca"},protocolId:null,selected:new Set(),auto:new Set(),usedVoice:false,negated:new Set()};
 let REC=null;
 const SAMPLE="Médico: Dona Maria, a senhora tem falta de ar? Paciente: Tenho sim, e ando muito cansada. Médico: E dor no peito? Paciente: Não, isso não. Médico: A senhora está suando frio? Paciente: Aham, bastante. Médico: A senhora é fumante? Paciente: Nunca fumei. Médico: Toma algum remédio? Paciente: Só aspirina.";
 /* Sinônimos e termos leigos → item clínico do protocolo (equivalência).
@@ -1776,6 +1777,8 @@ function renderColeta(host){
           ${opts.map(s=>`<option value="${s.id}" ${s.id===COL.protocolId?"selected":""}>${/^Protocolo Mestre/.test(s.label)?"🫀 ":"📋 "}${escapeHtml(s.label)}</option>`).join("")}</select></div>
         <div class="patient">
           <div class="field"><label>Paciente</label><input id="pNome" placeholder="Nome do paciente" value="${escapeHtml(COL.patient.nome)}"></div>
+          <div class="field"><label>Idade</label><input id="pIdade" type="number" min="0" max="120" placeholder="anos" value="${escapeHtml(COL.patient.idade||"")}"></div>
+          <div class="field"><label>Profissão</label><input id="pProf" placeholder="Profissão" value="${escapeHtml(COL.patient.profissao||"")}"></div>
           <div class="field"><label>Sexo</label><select id="pSexo">${["Masculino","Feminino","Indefinido"].map(o=>`<option ${COL.patient.sexo===o?"selected":""}>${o}</option>`).join("")}</select></div>
           <div class="field"><label>Raça</label><select id="pRaca">${["Branca","Preta","Parda","Amarela","Indígena"].map(o=>`<option ${COL.patient.raca===o?"selected":""}>${o}</option>`).join("")}</select></div>
         </div>
@@ -1803,6 +1806,8 @@ function renderColeta(host){
   document.getElementById("colSvc").onchange=e=>{SVC=SERVICES.find(s=>s.id===e.target.value)||SERVICES[0];TREE=SVC.tree;COL.protocolId=TREE.id;COL.selected.clear();COL.auto.clear();COL.negated.clear();COL.usedVoice=false;renderColeta(host);};
   document.getElementById("colProto").onchange=e=>{COL.protocolId=e.target.value;COL.selected.clear();COL.auto.clear();COL.negated.clear();COL.usedVoice=false;protoNode().open=true;drawColTree();drawSel();drawNeg();};
   document.getElementById("pNome").oninput=e=>COL.patient.nome=e.target.value;
+  document.getElementById("pIdade").oninput=e=>COL.patient.idade=e.target.value;
+  document.getElementById("pProf").oninput=e=>COL.patient.profissao=e.target.value;
   document.getElementById("pSexo").onchange=e=>COL.patient.sexo=e.target.value;
   document.getElementById("pRaca").onchange=e=>COL.patient.raca=e.target.value;
   document.getElementById("micBtn").onclick=()=>{REC?stopVoice():startVoice();};
@@ -1924,6 +1929,7 @@ function finalizeColeta(){
   const modo=COL.usedVoice?"voz":"manual";
   const rec={id:"c"+Date.now()+Math.random().toString(36).slice(2,6),ts:Date.now(),
     paciente:(document.getElementById("pNome").value||"(sem nome)"),
+    idade:(COL.patient.idade||""),profissao:(COL.patient.profissao||""),
     sexo:COL.patient.sexo,raca:COL.patient.raca,protocolo:protoNode().label,modo,
     itens:[...COL.selected].map(id=>findById(TREE,id)?.label).filter(Boolean)};
   try{const a=JSON.parse(localStorage.getItem("sinpe_coletas")||"[]");a.push(rec);localStorage.setItem("sinpe_coletas",JSON.stringify(a));}catch(e){}
